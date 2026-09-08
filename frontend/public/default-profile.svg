@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title">
+  <title id="title">기본 프로필</title>
+  <rect x="17" y="7" width="126" height="146" rx="45" fill="#FFF6D9" stroke="#F0C35B" stroke-width="2"/>
+  <circle cx="80" cy="64" r="17" fill="none" stroke="#B97800" stroke-width="7"/>
+  <path d="M55 115c0-20 11-34 25-34s25 14 25 34" fill="none" stroke="#B97800" stroke-width="7" stroke-linecap="round"/>
+</svg>

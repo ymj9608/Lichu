@@ -1,0 +1,32 @@
+<script setup lang="ts">
+import {computed,ref,watch} from 'vue'
+import {useRoute} from 'vue-router'
+import {Clock3,History,ArrowUpRight,RefreshCw} from 'lucide-vue-next'
+import {api,errorOf} from '../api/client'
+import type {LicenseRequest} from '../types'
+import {date} from '../utils/format'
+import {useResource} from '../utils/useResource'
+import StatusBadge from '../components/StatusBadge.vue'
+import ResourceState from '../components/ResourceState.vue'
+import AppModal from '../components/AppModal.vue'
+const route=useRoute(),admin=computed(()=>route.path.startsWith('/admin')),tab=ref<'pending'|'history'>('pending'),filter=ref(''),rows=ref<LicenseRequest[]>([])
+const {loading,error,refresh}=useResource(async()=>{const path=admin.value?(tab.value==='pending'?'/admin/license-requests':'/admin/license-requests/history'):'/license-requests/me';rows.value=(await api.get<LicenseRequest[]>(path,{params:admin.value&&tab.value==='history'&&filter.value?{status:filter.value}:{}})).data})
+const page=ref(1),pageSize=10
+const pageCount=computed(()=>Math.max(1,Math.ceil(rows.value.length/pageSize)))
+const visibleRows=computed(()=>rows.value.slice((page.value-1)*pageSize,page.value*pageSize))
+watch([tab,filter],()=>{page.value=1;void refresh()})
+watch(pageCount,count=>{if(page.value>count)page.value=count})
+const selected=ref<LicenseRequest|null>(null),action=ref<'approve'|'reject'|'cancel'>('approve'),reason=ref(''),busy=ref(false),modalError=ref(''),toast=ref('')
+const title=computed(()=>action.value==='approve'?'라이선스 신청 승인':action.value==='reject'?'라이선스 신청 반려':'신청을 취소할까요?')
+function open(row:LicenseRequest,kind:typeof action.value){selected.value=row;action.value=kind;reason.value='';modalError.value=''}
+async function submit(){busy.value=true;modalError.value='';try{
+  const path=action.value==='cancel'?`/license-requests/${selected.value!.id}/cancel`:`/admin/license-requests/${selected.value!.id}/${action.value}`
+  await api.post(path,action.value==='cancel'?undefined:{reason:reason.value})
+  selected.value=null;toast.value=action.value==='approve'?'승인과 라이선스 할당이 완료되었습니다.':action.value==='reject'?'반려 결과가 신청자에게 반영되었습니다.':'신청이 취소되었습니다.'
+  setTimeout(()=>toast.value='',4000);await refresh(true)
+}catch(e){modalError.value=errorOf(e).message;await refresh(true)}finally{busy.value=false}}
+</script>
+<template><div class="simple-page-heading"><h1>{{admin?'신청 관리':'내 신청'}}</h1><button class="btn" @click="refresh()"><RefreshCw :size="16"/>새로고침</button></div>
+<div class="section-toolbar"><div v-if="admin" class="category-tabs"><button :class="{active:tab==='pending'}" @click="tab='pending'"><Clock3 :size="17"/>승인 대기<span v-if="tab==='pending'">{{rows.length}}</span></button><button :class="{active:tab==='history'}" @click="tab='history'"><History :size="17"/>처리 이력</button></div><div v-else class="section-title">전체 신청 내역 <span>{{rows.length}}</span></div><select v-if="admin&&tab==='history'" v-model="filter" aria-label="처리 결과 필터"><option value="">전체 결과</option><option value="APPROVED">승인</option><option value="REJECTED">반려</option></select><RouterLink v-if="!admin" class="text-button" to="/licenses">라이선스 탐색<ArrowUpRight :size="16"/></RouterLink></div>
+<ResourceState :loading="loading" :error="error" :empty="!rows.length" :message="admin?(tab==='pending'?'현재 승인 대기 중인 요청이 없습니다.':'처리 이력이 없습니다.'):'아직 신청한 라이선스가 없습니다.'" @retry="refresh()"><div class="table-container"><table><thead><tr><th v-if="admin">신청자</th><th>라이선스 / 사용 목적</th><th>신청일 / 사용 예정 기간</th><th v-if="admin&&tab==='pending'">잔여 좌석</th><th v-else>상태</th><th>{{admin&&tab==='pending'?'요청 처리':'처리 결과'}}</th><th v-if="!admin">관리</th></tr></thead><tbody><tr v-for="row in visibleRows" :key="row.id"><td v-if="admin"><strong>{{row.user.name}}</strong><small>{{row.user.department.name}}</small></td><td><strong>{{row.license.name}}</strong><p class="table-reason">{{row.reason}}</p></td><td><span>{{date(row.created_at)}}</span><small class="date-range">{{date(row.start_date)}} ~ {{date(row.end_date)}}</small></td><td v-if="admin&&tab==='pending'"><span class="seat-count" :class="row.license.available_seats?'text-success':'text-warning'">{{row.license.available_seats}}석</span><small>총 {{row.license.total_seats}}석</small></td><td v-else><StatusBadge :status="row.status"/></td><td><div v-if="admin&&tab==='pending'" class="actions"><button class="btn primary compact" :disabled="row.license.available_seats===0||row.license.status==='INACTIVE'" @click="open(row,'approve')">승인</button><button class="btn danger compact" @click="open(row,'reject')">반려</button></div><div v-else-if="row.decision_reason" class="decision-box" :class="{rejected:row.status==='REJECTED'}"><b>{{row.status==='REJECTED'?'반려 사유':'승인 사유'}}</b><p>{{row.decision_reason}}</p><small>{{row.processor?.name}} · {{date(row.processed_at)}}</small></div><span v-else class="muted">{{row.status==='CANCELED'?'취소됨':'관리자가 검토 중입니다.'}}</span></td><td v-if="!admin"><button v-if="row.status==='PENDING'" class="btn compact" @click="open(row,'cancel')">신청 취소</button><span v-else class="muted">—</span></td></tr></tbody></table></div><div v-if="pageCount>1" class="pagination"><span>총 {{rows.length}}건 · {{page}} / {{pageCount}} 페이지</span><button class="btn compact" :disabled="page===1" @click="page--">이전</button><button class="btn compact" :disabled="page===pageCount" @click="page++">다음</button></div></ResourceState>
+<div v-if="toast" class="toast" role="status">{{toast}}</div><AppModal v-if="selected" :title="title" :busy="busy" @close="!busy && (selected=null)"><div class="modal-summary"><strong>{{selected.license.name}}</strong><span>{{selected.user.name}} · {{selected.user.department.name}}</span><p>{{selected.reason}}</p></div><form @submit.prevent="submit"><p v-if="action==='cancel'" class="notice">취소한 신청은 이력에 보관됩니다. 필요하면 다시 신청할 수 있습니다.</p><label v-else>{{action==='approve'?'승인':'반려'}} 사유 <span class="required">*</span><textarea v-model="reason" required maxlength="4000" placeholder="신청자가 확인할 수 있도록 처리 사유를 입력해주세요."></textarea></label><p v-if="modalError" class="notice error" role="alert">{{modalError}}</p><div class="modal-actions"><button type="button" class="btn" :disabled="busy" @click="selected=null">닫기</button><button class="btn" :class="action==='approve'?'primary':'danger-solid'" :disabled="busy">{{busy?'처리 중…':action==='approve'?'승인 확정':action==='reject'?'반려 확정':'신청 취소'}}</button></div></form></AppModal></template>

@@ -1,0 +1,87 @@
+// Generated from SQLAlchemy metadata. Partial unique indexes documented below.
+Table departments {
+  id integer [pk, increment, not null]
+  name varchar(100) [not null, unique]
+}
+
+Table licenses {
+  id integer [pk, increment, not null]
+  name varchar(150) [not null]
+  vendor varchar(100) [not null]
+  plan_name varchar(100) [not null]
+  category varchar(50) [not null]
+  description text [not null]
+  total_seats integer [not null]
+  unit_price "numeric(12, 2)" [not null]
+  billing_cycle varchar(10) [not null]
+  status varchar(10) [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  Note: '''
+billing_cycle IN ('MONTHLY','YEARLY'); status IN ('ACTIVE','INACTIVE'); total_seats >= 0; unit_price >= 0
+'''
+}
+
+Table users {
+  id integer [pk, increment, not null]
+  employee_no varchar(50) [not null, unique]
+  name varchar(100) [not null]
+  department_id integer [not null]
+  job_title varchar(100) [not null]
+  email varchar(255) [not null, unique]
+  username varchar(100) [not null, unique]
+  password_hash varchar(255) [not null]
+  profile_image text
+  role varchar(10) [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  Note: '''
+role IN ('USER','MASTER')
+'''
+}
+
+Table license_requests {
+  id integer [pk, increment, not null]
+  user_id integer [not null]
+  license_id integer [not null]
+  reason text [not null]
+  start_date date [not null]
+  end_date date [not null]
+  status varchar(10) [not null]
+  decision_reason text
+  processed_by integer
+  processed_at timestamptz
+  canceled_at timestamptz
+  created_at timestamptz [not null]
+  Note: '''
+start_date <= end_date; status IN ('PENDING','APPROVED','REJECTED','CANCELED'); uq_pending_user_license: UNIQUE(user_id, license_id) WHERE status = 'PENDING'
+'''
+}
+
+Table license_assignments {
+  id integer [pk, increment, not null]
+  user_id integer [not null]
+  license_id integer [not null]
+  request_id integer [unique]
+  status varchar(10) [not null]
+  assigned_by integer [not null]
+  assigned_at timestamptz [not null]
+  valid_from date [not null]
+  valid_until date [not null]
+  ended_by integer
+  ended_at timestamptz
+  end_reason text
+  Note: '''
+status IN ('ACTIVE','RETURNED','REVOKED'); uq_active_user_license: UNIQUE(user_id, license_id) WHERE status = 'ACTIVE'; valid_from <= valid_until
+'''
+}
+
+Ref: users.department_id > departments.id
+Ref: license_requests.user_id > users.id
+Ref: license_requests.license_id > licenses.id
+Ref: license_requests.processed_by > users.id
+Ref: license_assignments.user_id > users.id
+Ref: license_assignments.license_id > licenses.id
+Ref: license_assignments.request_id - license_requests.id
+Ref: license_assignments.assigned_by > users.id
+Ref: license_assignments.ended_by > users.id

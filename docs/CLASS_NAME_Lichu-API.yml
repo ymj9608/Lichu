@@ -1,0 +1,3713 @@
+openapi: 3.1.0
+info:
+  title: LiChU. API
+  description: '사내 SaaS 라이선스 신청·승인·할당·반납·회수
+
+    제출용 문서에서 Security Schemes만 제외했습니다. 실제 앱은 Bearer JWT 인증을 요구합니다.'
+  version: 1.1.0
+paths:
+  /api/departments:
+    get:
+      tags:
+      - Auth
+      summary: 회원가입 부서 목록
+      operationId: departments_api_departments_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DepartmentOut'
+                type: array
+                title: Response Departments Api Departments Get
+              example:
+              - id: 1
+                name: 개발팀
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/auth/signup:
+    post:
+      tags:
+      - Auth
+      summary: 직원 회원가입
+      operationId: signup_api_auth_signup_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signup'
+            example:
+              employee_no: EMP000001
+              name: 윤명진
+              department_id: 1
+              job_title: Backend Developer
+              email: myeongjin@example.com
+              username: myeongjin
+              password: LichuDemo2026!
+              password_confirm: LichuDemo2026!
+              profile_image: null
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+              example:
+                id: 2
+                employee_no: EMP000001
+                name: 윤명진
+                department_id: 1
+                department:
+                  id: 1
+                  name: 개발팀
+                job_title: Backend Developer
+                email: myeongjin@example.com
+                username: myeongjin
+                role: USER
+                profile_image: null
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: 아이디와 비밀번호 로그인
+      operationId: login_api_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+            example:
+              username: myeongjin
+              password: LichuDemo2026!
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenOut'
+              example:
+                access_token: example
+                token_type: example
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/auth/me:
+    get:
+      tags:
+      - Auth
+      summary: 현재 로그인 사용자
+      operationId: me_api_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+              example:
+                id: 2
+                employee_no: EMP000001
+                name: 윤명진
+                department_id: 1
+                department:
+                  id: 1
+                  name: 개발팀
+                job_title: Backend Developer
+                email: myeongjin@example.com
+                username: myeongjin
+                role: USER
+                profile_image: null
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+    patch:
+      tags:
+      - Auth
+      summary: 회원 정보와 프로필 사진 수정
+      operationId: edit_me_api_auth_me_patch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+            example:
+              name: 윤명진
+              department_id: 1
+              job_title: Backend Developer
+              email: myeongjin@example.com
+              profile_image: null
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+              example:
+                id: 2
+                employee_no: EMP000001
+                name: 윤명진
+                department_id: 1
+                department:
+                  id: 1
+                  name: 개발팀
+                job_title: Backend Developer
+                email: myeongjin@example.com
+                username: myeongjin
+                role: USER
+                profile_image: null
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/licenses:
+    get:
+      tags:
+      - Licenses
+      summary: 라이선스 검색과 좌석 현황
+      operationId: licenses_api_licenses_get
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 150
+          - type: 'null'
+          title: Q
+        example: GitHub
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 50
+          - type: 'null'
+          title: Category
+        example: 개발
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LicenseOut'
+                title: Response Licenses Api Licenses Get
+              example:
+              - name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: 코드 개발과 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94
+                monthly_unit_price: '19.00'
+                request_block: null
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/licenses/{license_id}:
+    get:
+      tags:
+      - Licenses
+      summary: 라이선스 상세
+      operationId: license_detail_api_licenses__license_id__get
+      parameters:
+      - name: license_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: License Id
+        example: 1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseOut'
+              example:
+                name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: 코드 개발과 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94
+                monthly_unit_price: '19.00'
+                request_block: null
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/license-requests:
+    post:
+      tags:
+      - Requests
+      summary: 사용 신청
+      operationId: request_create_api_license_requests_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestInput'
+            example:
+              license_id: 1
+              reason: AI 서비스 개발 프로젝트에 사용
+              start_date: '2026-09-08'
+              end_date: '2026-12-31'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: PENDING
+                decision_reason: null
+                processed_by: null
+                processor: null
+                processed_at: null
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/license-requests/me:
+    get:
+      tags:
+      - Requests
+      summary: 내 신청과 처리 결과
+      operationId: my_requests_api_license_requests_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/RequestOut'
+                type: array
+                title: Response My Requests Api License Requests Me Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: PENDING
+                decision_reason: null
+                processed_by: null
+                processor: null
+                processed_at: null
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/license-requests/{request_id}/cancel:
+    post:
+      tags:
+      - Requests
+      summary: 내 대기 신청 취소
+      operationId: cancel_api_license_requests__request_id__cancel_post
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Request Id
+        example: 1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: CANCELED
+                decision_reason: null
+                processed_by: null
+                processor: null
+                processed_at: null
+                canceled_at: '2026-09-08T09:00:00Z'
+                created_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/license-assignments/me:
+    get:
+      tags:
+      - Assignments
+      summary: 내 활성 라이선스
+      operationId: my_assignments_api_license_assignments_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/AssignmentOut'
+                type: array
+                title: Response My Assignments Api License Assignments Me Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                end_date: '2026-12-31'
+                status: ACTIVE
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: null
+                ended_at: null
+                end_reason: null
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/license-assignments/{assignment_id}/return:
+    post:
+      tags:
+      - Assignments
+      summary: 라이선스 직접 반납
+      operationId: return_assignment_api_license_assignments__assignment_id__return_post
+      parameters:
+      - name: assignment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Assignment Id
+        example: 1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                end_date: '2026-12-31'
+                status: RETURNED
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: 2
+                ended_at: '2026-09-08T09:00:00Z'
+                end_reason: 프로젝트 종료
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/dashboard:
+    get:
+      tags:
+      - Admin
+      summary: 관리자 좌석 및 요청 요약
+      operationId: dashboard_api_admin_dashboard_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOut'
+              example:
+                total_seats: 50
+                used_seats: 47
+                available_seats: 3
+                pending_requests: 1
+                licenses:
+                - name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                high_utilization:
+                - name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                recent_requests:
+                - id: 1
+                  user_id: 2
+                  license_id: 1
+                  user:
+                    id: 2
+                    employee_no: EMP000001
+                    name: 윤명진
+                    department_id: 1
+                    department:
+                      id: 1
+                      name: 개발팀
+                    job_title: Backend Developer
+                    email: myeongjin@example.com
+                    username: myeongjin
+                    role: USER
+                    profile_image: null
+                    created_at: '2026-09-08T09:00:00Z'
+                    updated_at: '2026-09-08T09:00:00Z'
+                  license:
+                    name: GitHub Copilot
+                    vendor: GitHub
+                    plan_name: Business
+                    category: 개발
+                    description: 코드 개발과 리뷰 지원
+                    total_seats: 50
+                    unit_price: '19.00'
+                    billing_cycle: MONTHLY
+                    status: ACTIVE
+                    id: 1
+                    created_at: '2026-09-08T09:00:00Z'
+                    updated_at: '2026-09-08T09:00:00Z'
+                    used_seats: 47
+                    available_seats: 3
+                    utilization: 94
+                    monthly_unit_price: '19.00'
+                    request_block: null
+                  reason: AI 서비스 개발 프로젝트에 사용
+                  start_date: '2026-09-08'
+                  end_date: '2026-12-31'
+                  status: PENDING
+                  decision_reason: null
+                  processed_by: null
+                  processor: null
+                  processed_at: null
+                  canceled_at: null
+                  created_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/license-requests:
+    get:
+      tags:
+      - Admin
+      summary: 승인 대기 신청
+      operationId: pending_api_admin_license_requests_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/RequestOut'
+                type: array
+                title: Response Pending Api Admin License Requests Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: PENDING
+                decision_reason: null
+                processed_by: null
+                processor: null
+                processed_at: null
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/license-requests/history:
+    get:
+      tags:
+      - Admin
+      summary: 승인 및 반려 처리 이력
+      operationId: history_api_admin_license_requests_history_get
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - APPROVED
+            - REJECTED
+            type: string
+          - type: 'null'
+          title: Status
+        example: APPROVED
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestOut'
+                title: Response History Api Admin License Requests History Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: APPROVED
+                decision_reason: 프로젝트 사용 검토 완료
+                processed_by: 1
+                processor:
+                  id: 1
+                  employee_no: EMP000001
+                  name: LiChU. Master
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: master
+                  role: MASTER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                processed_at: '2026-09-08T09:00:00Z'
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/license-requests/{request_id}/approve:
+    post:
+      tags:
+      - Admin
+      summary: 사유와 함께 승인 및 할당
+      operationId: approve_api_admin_license_requests__request_id__approve_post
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Request Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+            example:
+              reason: AI 서비스 개발 프로젝트에 사용
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: APPROVED
+                decision_reason: 프로젝트 사용 검토 완료
+                processed_by: 1
+                processor:
+                  id: 1
+                  employee_no: EMP000001
+                  name: LiChU. Master
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: master
+                  role: MASTER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                processed_at: '2026-09-08T09:00:00Z'
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/license-requests/{request_id}/reject:
+    post:
+      tags:
+      - Admin
+      summary: 사유와 함께 반려
+      operationId: reject_api_admin_license_requests__request_id__reject_post
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Request Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+            example:
+              reason: AI 서비스 개발 프로젝트에 사용
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: REJECTED
+                decision_reason: 프로젝트 사용 검토 완료
+                processed_by: 1
+                processor:
+                  id: 1
+                  employee_no: EMP000001
+                  name: LiChU. Master
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: master
+                  role: MASTER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                processed_at: '2026-09-08T09:00:00Z'
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/licenses:
+    get:
+      tags:
+      - Admin
+      summary: 관리 대상 라이선스
+      operationId: admin_licenses_api_admin_licenses_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/LicenseOut'
+                type: array
+                title: Response Admin Licenses Api Admin Licenses Get
+              example:
+              - name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: 코드 개발과 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94
+                monthly_unit_price: '19.00'
+                request_block: null
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+    post:
+      tags:
+      - Admin
+      summary: 라이선스 등록
+      operationId: create_license_api_admin_licenses_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LicenseInput'
+            example:
+              name: 윤명진
+              vendor: GitHub
+              plan_name: Business
+              category: 개발
+              description: 코드 개발과 리뷰 지원
+              total_seats: 50
+              unit_price: '19.00'
+              billing_cycle: MONTHLY
+              status: ACTIVE
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseOut'
+              example:
+                name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: 코드 개발과 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94
+                monthly_unit_price: '19.00'
+                request_block: null
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/licenses/{license_id}:
+    patch:
+      tags:
+      - Admin
+      summary: 라이선스 부분 수정
+      operationId: edit_license_api_admin_licenses__license_id__patch
+      parameters:
+      - name: license_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: License Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LicensePatch'
+            example:
+              name: 윤명진
+              vendor: GitHub
+              plan_name: Business
+              category: 개발
+              description: 코드 개발과 리뷰 지원
+              total_seats: 50
+              unit_price: '19.00'
+              billing_cycle: MONTHLY
+              status: ACTIVE
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseOut'
+              example:
+                name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: 코드 개발과 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94
+                monthly_unit_price: '19.00'
+                request_block: null
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/licenses/{license_id}/assignments:
+    get:
+      tags:
+      - Admin
+      summary: 현재 사용자 인사정보 및 할당
+      operationId: license_users_api_admin_licenses__license_id__assignments_get
+      parameters:
+      - name: license_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: License Id
+        example: 1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssignmentOut'
+                title: Response License Users Api Admin Licenses  License Id  Assignments
+                  Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                end_date: '2026-12-31'
+                status: ACTIVE
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: null
+                ended_at: null
+                end_reason: null
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/license-assignments/{assignment_id}/revoke:
+    post:
+      tags:
+      - Admin
+      summary: 사유와 함께 관리자 회수
+      operationId: revoke_api_admin_license_assignments__assignment_id__revoke_post
+      parameters:
+      - name: assignment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Assignment Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+            example:
+              reason: AI 서비스 개발 프로젝트에 사용
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                end_date: '2026-12-31'
+                status: REVOKED
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: 1
+                ended_at: '2026-09-08T09:00:00Z'
+                end_reason: 프로젝트 종료
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+  /api/admin/license-assignments/{assignment_id}:
+    patch:
+      tags:
+      - Admin
+      summary: 권한 승인 기간 수정
+      operationId: edit_assignment_period_api_admin_license_assignments__assignment_id__patch
+      parameters:
+      - name: assignment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Assignment Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentPeriod'
+            example:
+              valid_from: '2026-09-08'
+              valid_until: '2026-12-31'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 1
+                  department:
+                    id: 1
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: 코드 개발과 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트에 사용
+                end_date: '2026-12-31'
+                status: ACTIVE
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: null
+                ended_at: null
+                end_reason: null
+        '400':
+          description: 잘못된 상태 전이 또는 업무 규칙 위반
+          content:
+            application/json:
+              example:
+                code: INVALID_TRANSITION
+                message: 잘못된 상태 전이 또는 업무 규칙 위반
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '401':
+          description: 로그인이 필요합니다.
+          content:
+            application/json:
+              example:
+                code: UNAUTHORIZED
+                message: 로그인이 필요합니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: 권한이 없습니다.
+          content:
+            application/json:
+              example:
+                code: FORBIDDEN
+                message: 권한이 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '404':
+          description: 해당 데이터가 없습니다.
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: 해당 데이터가 없습니다.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: 중복 또는 좌석 충돌
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: 중복 또는 좌석 충돌
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: 입력값을 확인해주세요.
+          content:
+            application/json:
+              example:
+                code: VALIDATION_ERROR
+                message: 입력값을 확인해주세요.
+                fields: {}
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '500':
+          description: 예상하지 못한 서버 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              example:
+                code: INTERNAL_ERROR
+                message: 서버 오류가 발생했습니다.
+                fields: {}
+components:
+  schemas:
+    AssignmentOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        user_id:
+          type: integer
+          title: User Id
+        license_id:
+          type: integer
+          title: License Id
+        request_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Request Id
+        user:
+          $ref: '#/components/schemas/UserOut'
+        license:
+          $ref: '#/components/schemas/LicenseOut'
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+        end_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: End Date
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - RETURNED
+          - REVOKED
+          title: Status
+        assigned_by:
+          type: integer
+          title: Assigned By
+        assigned_at:
+          type: string
+          format: date-time
+          title: Assigned At
+        valid_from:
+          type: string
+          format: date
+          title: Valid From
+        valid_until:
+          type: string
+          format: date
+          title: Valid Until
+        ended_by:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Ended By
+        ended_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ended At
+        end_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: End Reason
+      type: object
+      required:
+      - id
+      - user_id
+      - license_id
+      - request_id
+      - user
+      - license
+      - reason
+      - end_date
+      - status
+      - assigned_by
+      - assigned_at
+      - valid_from
+      - valid_until
+      - ended_by
+      - ended_at
+      - end_reason
+      title: AssignmentOut
+    AssignmentPeriod:
+      properties:
+        valid_from:
+          type: string
+          format: date
+          title: Valid From
+        valid_until:
+          type: string
+          format: date
+          title: Valid Until
+      additionalProperties: false
+      type: object
+      required:
+      - valid_from
+      - valid_until
+      title: AssignmentPeriod
+    DashboardOut:
+      properties:
+        total_seats:
+          type: integer
+          title: Total Seats
+        used_seats:
+          type: integer
+          title: Used Seats
+        available_seats:
+          type: integer
+          title: Available Seats
+        pending_requests:
+          type: integer
+          title: Pending Requests
+        licenses:
+          items:
+            $ref: '#/components/schemas/LicenseOut'
+          type: array
+          title: Licenses
+        high_utilization:
+          items:
+            $ref: '#/components/schemas/LicenseOut'
+          type: array
+          title: High Utilization
+        recent_requests:
+          items:
+            $ref: '#/components/schemas/RequestOut'
+          type: array
+          title: Recent Requests
+      type: object
+      required:
+      - total_seats
+      - used_seats
+      - available_seats
+      - pending_requests
+      - licenses
+      - high_utilization
+      - recent_requests
+      title: DashboardOut
+    DepartmentOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        name:
+          type: string
+          title: Name
+      type: object
+      required:
+      - id
+      - name
+      title: DepartmentOut
+    ErrorOut:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+        fields:
+          additionalProperties:
+            type: string
+          type: object
+          title: Fields
+      type: object
+      required:
+      - code
+      - message
+      title: ErrorOut
+    LicenseInput:
+      properties:
+        name:
+          type: string
+          maxLength: 150
+          minLength: 1
+          title: Name
+        vendor:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Vendor
+        plan_name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Plan Name
+        category:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Category
+        description:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Description
+        total_seats:
+          type: integer
+          maximum: 1000000.0
+          minimum: 0.0
+          title: Total Seats
+        unit_price:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,10}|(?=[\d.]{1,13}0*$)\d{0,10}\.\d{0,2}0*$)
+          title: Unit Price
+        billing_cycle:
+          type: string
+          enum:
+          - MONTHLY
+          - YEARLY
+          title: Billing Cycle
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+          title: Status
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - vendor
+      - plan_name
+      - category
+      - description
+      - total_seats
+      - unit_price
+      - billing_cycle
+      - status
+      title: LicenseInput
+    LicenseOut:
+      properties:
+        name:
+          type: string
+          maxLength: 150
+          minLength: 1
+          title: Name
+        vendor:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Vendor
+        plan_name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Plan Name
+        category:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Category
+        description:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Description
+        total_seats:
+          type: integer
+          maximum: 1000000.0
+          minimum: 0.0
+          title: Total Seats
+        unit_price:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,10}|(?=[\d.]{1,13}0*$)\d{0,10}\.\d{0,2}0*$)
+          title: Unit Price
+        billing_cycle:
+          type: string
+          enum:
+          - MONTHLY
+          - YEARLY
+          title: Billing Cycle
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+          title: Status
+        id:
+          type: integer
+          title: Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+        used_seats:
+          type: integer
+          title: Used Seats
+        available_seats:
+          type: integer
+          title: Available Seats
+        utilization:
+          type: number
+          title: Utilization
+        monthly_unit_price:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Monthly Unit Price
+        request_block:
+          anyOf:
+          - type: string
+            enum:
+            - ACTIVE_ASSIGNMENT
+            - PENDING_REQUEST
+            - INACTIVE
+          - type: 'null'
+          title: Request Block
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - vendor
+      - plan_name
+      - category
+      - description
+      - total_seats
+      - unit_price
+      - billing_cycle
+      - status
+      - id
+      - created_at
+      - updated_at
+      - used_seats
+      - available_seats
+      - utilization
+      - monthly_unit_price
+      - request_block
+      title: LicenseOut
+    LicensePatch:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 150
+            minLength: 1
+          - type: 'null'
+          title: Name
+        vendor:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 1
+          - type: 'null'
+          title: Vendor
+        plan_name:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 1
+          - type: 'null'
+          title: Plan Name
+        category:
+          anyOf:
+          - type: string
+            maxLength: 50
+            minLength: 1
+          - type: 'null'
+          title: Category
+        description:
+          anyOf:
+          - type: string
+            maxLength: 4000
+            minLength: 1
+          - type: 'null'
+          title: Description
+        total_seats:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Total Seats
+        unit_price:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,10}|(?=[\d.]{1,13}0*$)\d{0,10}\.\d{0,2}0*$)
+          - type: 'null'
+          title: Unit Price
+        billing_cycle:
+          anyOf:
+          - type: string
+            enum:
+            - MONTHLY
+            - YEARLY
+          - type: 'null'
+          title: Billing Cycle
+        status:
+          anyOf:
+          - type: string
+            enum:
+            - ACTIVE
+            - INACTIVE
+          - type: 'null'
+          title: Status
+      additionalProperties: false
+      type: object
+      title: LicensePatch
+    Login:
+      properties:
+        username:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Username
+        password:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Password
+      additionalProperties: false
+      type: object
+      required:
+      - username
+      - password
+      title: Login
+    ProfileUpdate:
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Name
+        department_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Department Id
+        job_title:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Job Title
+        email:
+          type: string
+          maxLength: 255
+          format: email
+          title: Email
+        profile_image:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Profile Image
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - department_id
+      - job_title
+      - email
+      title: ProfileUpdate
+    Reason:
+      properties:
+        reason:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - reason
+      title: Reason
+    RequestInput:
+      properties:
+        license_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: License Id
+        reason:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Reason
+        start_date:
+          type: string
+          format: date
+          title: Start Date
+        end_date:
+          type: string
+          format: date
+          title: End Date
+      additionalProperties: false
+      type: object
+      required:
+      - license_id
+      - reason
+      - start_date
+      - end_date
+      title: RequestInput
+    RequestOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        user_id:
+          type: integer
+          title: User Id
+        license_id:
+          type: integer
+          title: License Id
+        user:
+          $ref: '#/components/schemas/UserOut'
+        license:
+          $ref: '#/components/schemas/LicenseOut'
+        reason:
+          type: string
+          title: Reason
+        start_date:
+          type: string
+          format: date
+          title: Start Date
+        end_date:
+          type: string
+          format: date
+          title: End Date
+        status:
+          type: string
+          enum:
+          - PENDING
+          - APPROVED
+          - REJECTED
+          - CANCELED
+          title: Status
+        decision_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decision Reason
+        processed_by:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Processed By
+        processor:
+          anyOf:
+          - $ref: '#/components/schemas/UserOut'
+          - type: 'null'
+        processed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Processed At
+        canceled_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Canceled At
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - user_id
+      - license_id
+      - user
+      - license
+      - reason
+      - start_date
+      - end_date
+      - status
+      - decision_reason
+      - processed_by
+      - processor
+      - processed_at
+      - canceled_at
+      - created_at
+      title: RequestOut
+    Signup:
+      properties:
+        employee_no:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Employee No
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Name
+        department_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Department Id
+        job_title:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Job Title
+        email:
+          type: string
+          maxLength: 255
+          format: email
+          title: Email
+        username:
+          type: string
+          maxLength: 100
+          minLength: 4
+          title: Username
+        password:
+          type: string
+          maxLength: 72
+          minLength: 8
+          title: Password
+        password_confirm:
+          type: string
+          title: Password Confirm
+        profile_image:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Profile Image
+      additionalProperties: false
+      type: object
+      required:
+      - employee_no
+      - name
+      - department_id
+      - job_title
+      - email
+      - username
+      - password
+      - password_confirm
+      title: Signup
+    TokenOut:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+      type: object
+      required:
+      - access_token
+      title: TokenOut
+    UserOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        employee_no:
+          type: string
+          title: Employee No
+        name:
+          type: string
+          title: Name
+        department_id:
+          type: integer
+          title: Department Id
+        department:
+          $ref: '#/components/schemas/DepartmentOut'
+        job_title:
+          type: string
+          title: Job Title
+        email:
+          type: string
+          title: Email
+        username:
+          type: string
+          title: Username
+        role:
+          type: string
+          enum:
+          - USER
+          - MASTER
+          title: Role
+        profile_image:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Profile Image
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - employee_no
+      - name
+      - department_id
+      - department
+      - job_title
+      - email
+      - username
+      - role
+      - profile_image
+      - created_at
+      - updated_at
+      title: UserOut

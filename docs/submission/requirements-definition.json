@@ -1,0 +1,462 @@
+{
+  "version": "1.2",
+  "author": "판교5 / P157 / 윤명진",
+  "functional": [
+    {
+      "id": "REQ-FUNC-001",
+      "major": "회원",
+      "minor": "가입",
+      "title": "직원 회원가입",
+      "detail": "사번·이름·부서·직급/직책·회사 이메일·아이디·비밀번호·확인을 입력하고 JPG/PNG/WEBP 프로필 사진을 선택 등록한다. 사진 미등록 시 기본 프로필을 사용한다. 사번/아이디/이메일은 중복 불가(409), 아이디 4자 이상, 비밀번호 8자 이상·UTF-8 72바이트 이하 및 확인 일치. 부서는 DB 목록에서 선택한다. USER로만 생성하며 성공 시 로그인 화면으로 이동한다.",
+      "actor": "USER",
+      "priority": "High",
+      "effort": "중 / 0.5MD",
+      "screens": [
+        "SCR-SIGNUP-001"
+      ],
+      "screen_desc": "회원가입 /signup",
+      "apis": [
+        "GET /api/departments",
+        "POST /api/auth/signup"
+      ],
+      "db": "departments.id/name; users.employee_no/name/department_id/job_title/email/username/password_hash/profile_image/role"
+    },
+    {
+      "id": "REQ-FUNC-002",
+      "major": "회원",
+      "minor": "인증",
+      "title": "로그인",
+      "detail": "아이디·비밀번호로 인증하고 JWT Access Token을 발급한다. 로그인 정보 저장은 비밀번호 대신 아이디만 브라우저에 보관한다. ID/비밀번호 찾기 버튼에서 사내 계정 문의 절차를 안내한다. USER는 라이선스 탐색, MASTER는 관리자 대시보드로 이동한다. 인증 실패는 401과 오류 메시지를 표시한다.",
+      "actor": "공통",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-AUTH-001"
+      ],
+      "screen_desc": "로그인 /login",
+      "apis": [
+        "POST /api/auth/login",
+        "GET /api/auth/me"
+      ],
+      "db": "users.username/password_hash/role; users.department_id → departments.id"
+    },
+    {
+      "id": "REQ-FUNC-003",
+      "major": "회원",
+      "minor": "세션",
+      "title": "사용자 정보·로그아웃",
+      "detail": "헤더에 이름·부서·직급/직책과 역할을 표시한다. 로그아웃하면 브라우저 토큰과 사용자 상태를 제거하고 로그인으로 이동한다. 토큰 만료 또는 401 발생 시 재로그인한다. 별도의 로그아웃 API나 Refresh Token은 사용하지 않는다.",
+      "actor": "공통",
+      "priority": "High",
+      "effort": "하 / 0.25MD",
+      "screens": [
+        "SCR-COMMON-001"
+      ],
+      "screen_desc": "공통 헤더·사이드바 / 인증 후 전체",
+      "apis": [
+        "GET /api/auth/me"
+      ],
+      "db": "users.name/job_title/role/department_id; departments.name (로그아웃은 DB 변경 없음)"
+    },
+    {
+      "id": "REQ-FUNC-020",
+      "major": "회원",
+      "minor": "수정",
+      "title": "회원 정보·프로필 사진 수정",
+      "detail": "헤더의 사용자 정보를 선택하면 이름·부서·직급/직책·회사 이메일과 프로필 사진을 수정한다. JPG/PNG/WEBP를 허용하며 별도의 파일 용량 제한은 두지 않는다. 사진을 등록하지 않거나 제거하면 공통 기본 프로필 이미지를 표시하고, 등록된 사진은 헤더·승인 대기·사용자 관리에 표시한다. 사번과 아이디는 읽기 전용이며 이메일 중복과 부서 유효성을 서버에서 검사한다.",
+      "actor": "공통",
+      "priority": "High",
+      "effort": "중 / 0.5MD",
+      "screens": [
+        "SCR-COMMON-002"
+      ],
+      "screen_desc": "회원 정보 수정 모달 / 인증 후 전체",
+      "apis": [
+        "PATCH /api/auth/me",
+        "GET /api/departments"
+      ],
+      "db": "users.name/department_id/job_title/email/profile_image/updated_at; departments.id"
+    },
+    {
+      "id": "REQ-FUNC-004",
+      "major": "라이선스",
+      "minor": "조회",
+      "title": "라이선스 탐색·검색",
+      "detail": "이름·공급사 검색과 카테고리 필터를 제공한다. 카드에 이름·공급사·플랜·분류·설명·단가/청구 주기·총/사용/잔여 좌석·사용률·활성 상태를 표시한다. 기존 ACTIVE 할당, PENDING 신청, INACTIVE 상태는 신청 버튼을 제한한다. 잔여 0석은 신청 가능으로 안내한다.",
+      "actor": "USER",
+      "priority": "High",
+      "effort": "중 / 0.5MD",
+      "screens": [
+        "SCR-LIC-001"
+      ],
+      "screen_desc": "라이선스 탐색 /licenses",
+      "apis": [
+        "GET /api/licenses"
+      ],
+      "db": "licenses 전체 정보; license_assignments.status=ACTIVE 집계; license_requests.status=PENDING"
+    },
+    {
+      "id": "REQ-FUNC-005",
+      "major": "신청",
+      "minor": "등록",
+      "title": "라이선스 사용 신청",
+      "detail": "모달에서 SaaS 상세를 확인하고 사용 목적·시작/종료 예정일을 입력한다. 목적은 필수이며 시작일≤종료일이어야 한다. 동일 라이선스의 ACTIVE 할당 또는 PENDING 신청은 409, INACTIVE는 400으로 차단한다. 잔여 0석에서도 PENDING 신청은 생성한다.",
+      "actor": "USER",
+      "priority": "High",
+      "effort": "상 / 0.5MD",
+      "screens": [
+        "SCR-LIC-002"
+      ],
+      "screen_desc": "사용 신청 모달 /licenses 내부",
+      "apis": [
+        "GET /api/licenses/{license_id}",
+        "POST /api/license-requests"
+      ],
+      "db": "license_requests.user_id/license_id/reason/start_date/end_date/status/created_at; licenses; license_assignments"
+    },
+    {
+      "id": "REQ-FUNC-006",
+      "major": "신청",
+      "minor": "조회",
+      "title": "내 신청·처리 결과",
+      "detail": "본인 신청의 SaaS·목적·신청일·예정 기간·상태와 승인/반려 사유·처리자·처리일을 확인한다. 반려 사유는 강조 표시한다. PENDING만 취소 버튼을 제공하고 CANCELED는 취소 상태를 표시한다. 화면에서 목록을 10건씩 표시한다.",
+      "actor": "USER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-REQ-001"
+      ],
+      "screen_desc": "내 신청 /requests",
+      "apis": [
+        "GET /api/license-requests/me"
+      ],
+      "db": "license_requests 상태/기간/목적/decision_reason/processed_by/processed_at; users; licenses"
+    },
+    {
+      "id": "REQ-FUNC-007",
+      "major": "신청",
+      "minor": "취소",
+      "title": "본인 신청 취소",
+      "detail": "취소 확인 모달을 거쳐 본인의 PENDING 신청만 CANCELED로 변경하고 canceled_at을 저장한다. 타인의 신청은 403, 이미 처리된 신청은 400으로 거부한다. 신청 행은 삭제하지 않으며 취소 후 필요하면 새로 신청할 수 있다.",
+      "actor": "USER",
+      "priority": "High",
+      "effort": "하 / 0.25MD",
+      "screens": [
+        "SCR-REQ-002"
+      ],
+      "screen_desc": "신청 취소 확인 /requests 내부",
+      "apis": [
+        "POST /api/license-requests/{request_id}/cancel"
+      ],
+      "db": "license_requests.user_id/status/canceled_at"
+    },
+    {
+      "id": "REQ-FUNC-008",
+      "major": "할당",
+      "minor": "조회",
+      "title": "내 라이선스 조회",
+      "detail": "본인의 ACTIVE 할당만 표시한다. SaaS·공급사·플랜·상태·사용 목적과 권한 승인 시작일/종료일을 확인한다. 목적은 연결된 신청에서 읽으며 연결이 없는 직접 배정은 별도 안내한다.",
+      "actor": "USER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-MYLIC-001"
+      ],
+      "screen_desc": "내 라이선스 /my-licenses",
+      "apis": [
+        "GET /api/license-assignments/me"
+      ],
+      "db": "license_assignments.user_id/status/valid_from/valid_until/request_id; licenses; license_requests.reason"
+    },
+    {
+      "id": "REQ-FUNC-009",
+      "major": "할당",
+      "minor": "반납",
+      "title": "사용자 직접 반납",
+      "detail": "확인 모달 후 본인의 ACTIVE 할당을 RETURNED로 변경한다. ended_by/ended_at과 “사용자 직접 반납” 사유를 저장한다. 타인 건은 403, 종료된 건은 400으로 차단한다. 완료 후 사용 목록을 재조회하고 잔여 좌석 집계에 반영한다.",
+      "actor": "USER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-MYLIC-002"
+      ],
+      "screen_desc": "반납 확인 /my-licenses 내부",
+      "apis": [
+        "POST /api/license-assignments/{assignment_id}/return"
+      ],
+      "db": "license_assignments.status/ended_by/ended_at/end_reason; ACTIVE 집계 감소"
+    },
+    {
+      "id": "REQ-FUNC-010",
+      "major": "관리",
+      "minor": "현황",
+      "title": "관리자 대시보드",
+      "detail": "전체·사용 중·잔여 좌석과 승인 대기 수를 표시한다. 라이선스별 사용 현황과 승인 대기 목록은 하단이 맞는 동일 높이 패널에서 각각 스크롤한다. 비활성 라이선스도 전체 좌석 합계에 포함하며 실제 ACTIVE 할당으로 사용량을 계산한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.5MD",
+      "screens": [
+        "SCR-ADM-001"
+      ],
+      "screen_desc": "대시보드 /admin",
+      "apis": [
+        "GET /api/admin/dashboard"
+      ],
+      "db": "licenses.total_seats/status; license_assignments.status; license_requests.status/created_at; users"
+    },
+    {
+      "id": "REQ-FUNC-011",
+      "major": "신청",
+      "minor": "대기",
+      "title": "승인 대기 요청 조회",
+      "detail": "승인 대기 탭에 PENDING만 표시한다. 신청자 이름·부서, SaaS·사용 목적·신청일과 한 줄의 사용 예정 기간, 현재 잔여 좌석을 확인한다. 잔여 0석 또는 비활성이면 승인 버튼을 비활성화한다. 승인/반려 후 재조회하여 대기 목록에서 제거한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-ADM-002"
+      ],
+      "screen_desc": "승인 대기 /admin/requests",
+      "apis": [
+        "GET /api/admin/license-requests"
+      ],
+      "db": "license_requests.status=PENDING/start_date/end_date; users.name/department_id; licenses; ACTIVE 집계"
+    },
+    {
+      "id": "REQ-FUNC-012",
+      "major": "신청",
+      "minor": "승인",
+      "title": "사유 입력·승인 및 할당",
+      "detail": "승인 사유는 필수다. PENDING 여부, 라이선스 활성 여부, 기존 ACTIVE 할당 없음, 잔여 좌석>0을 서버에서 확인한다. 동일 트랜잭션에서 APPROVED·사유·처리자·시각을 저장하고, 신청 기간을 권한 승인 기간으로 복사한 ACTIVE 할당을 생성한다. 좌석 부족/기존 할당은 409, 재처리는 400이다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "상 / 0.5MD",
+      "screens": [
+        "SCR-ADM-007"
+      ],
+      "screen_desc": "승인 모달 /admin/requests 내부",
+      "apis": [
+        "POST /api/admin/license-requests/{request_id}/approve"
+      ],
+      "db": "license_requests.status/decision_reason/processed_by/processed_at/start_date/end_date; license_assignments.user_id/license_id/request_id/status/assigned_by/assigned_at/valid_from/valid_until"
+    },
+    {
+      "id": "REQ-FUNC-013",
+      "major": "신청",
+      "minor": "반려",
+      "title": "사유 입력·반려",
+      "detail": "반려 사유를 필수 입력하고 PENDING 신청을 REJECTED로 변경한다. decision_reason/processed_by/processed_at을 저장한다. 완료 건은 대기에서 제거되어 처리 이력과 신청자의 내 신청에 나타난다. 할당은 생성하지 않으며 재처리는 400으로 거부한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-ADM-008"
+      ],
+      "screen_desc": "반려 모달 /admin/requests 내부",
+      "apis": [
+        "POST /api/admin/license-requests/{request_id}/reject"
+      ],
+      "db": "license_requests.status/decision_reason/processed_by/processed_at"
+    },
+    {
+      "id": "REQ-FUNC-014",
+      "major": "신청",
+      "minor": "이력",
+      "title": "승인·반려 이력 조회",
+      "detail": "처리 이력 탭에는 APPROVED/REJECTED만 표시하고 전체·승인·반려 필터를 제공한다. 신청자·SaaS·결과·처리자·사유·처리일을 표시한다. CANCELED는 관리자 처리 이력에 포함하지 않는다. 목록은 화면에서 10건씩 나누어 표시한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-ADM-004"
+      ],
+      "screen_desc": "처리 이력 /admin/requests 탭",
+      "apis": [
+        "GET /api/admin/license-requests/history"
+      ],
+      "db": "license_requests.status/decision_reason/processed_by/processed_at; users; licenses"
+    },
+    {
+      "id": "REQ-FUNC-015",
+      "major": "라이선스",
+      "minor": "관리",
+      "title": "라이선스 관리 목록",
+      "detail": "등록된 라이선스의 이름·공급사·플랜·분류·총/사용/잔여 좌석·사용률·단가·청구 주기·상태를 카드로 표시한다. 연간 단가는 월 환산액도 표시한다. 검색·분류 필터, 등록·수정 버튼과 카드 클릭을 통한 현재 사용자 관리를 제공한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-ADM-003"
+      ],
+      "screen_desc": "라이선스 관리 /admin/licenses",
+      "apis": [
+        "GET /api/admin/licenses"
+      ],
+      "db": "licenses 전체 필드; license_assignments.status=ACTIVE 집계"
+    },
+    {
+      "id": "REQ-FUNC-016",
+      "major": "라이선스",
+      "minor": "등록",
+      "title": "라이선스 등록",
+      "detail": "이름·공급사·플랜·분류·설명·총 좌석·사용자당 단가(USD)·청구 주기(MONTHLY/YEARLY)·상태(ACTIVE/INACTIVE)를 입력하여 등록한다. 총 좌석과 단가는 0 이상이어야 한다. 저장 후 관리 목록을 재조회한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.5MD",
+      "screens": [
+        "SCR-ADM-005"
+      ],
+      "screen_desc": "등록 모달 /admin/licenses 내부",
+      "apis": [
+        "POST /api/admin/licenses"
+      ],
+      "db": "licenses.name/vendor/plan_name/category/description/total_seats/unit_price/billing_cycle/status/created_at/updated_at"
+    },
+    {
+      "id": "REQ-FUNC-017",
+      "major": "라이선스",
+      "minor": "수정",
+      "title": "라이선스 수정·비활성화",
+      "detail": "기존 정보를 수정한다. 총 좌석을 현재 ACTIVE 할당 수 미만으로 줄이면 409로 거부한다. 삭제 대신 INACTIVE로 설정하며 기존 신청·할당 이력을 유지한다. 비활성 상태는 새 신청·승인을 막지만 기존 할당을 자동 종료하지 않는다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.5MD",
+      "screens": [
+        "SCR-ADM-005"
+      ],
+      "screen_desc": "수정 모달 /admin/licenses 내부",
+      "apis": [
+        "PATCH /api/admin/licenses/{license_id}"
+      ],
+      "db": "licenses 수정 필드/updated_at; license_assignments.status=ACTIVE 집계"
+    },
+    {
+      "id": "REQ-FUNC-018",
+      "major": "할당",
+      "minor": "사용자",
+      "title": "현재 라이선스 사용자 조회·검색",
+      "detail": "라이선스 카드를 클릭하면 해당 라이선스의 ACTIVE 사용자 목록을 모달로 연다. 이름·부서·직급/직책·이메일·권한 승인 기간과 수정·회수 버튼을 표시한다. 이름·부서·직급·이메일 통합 검색을 제공하고 사용자가 없거나 검색 결과가 없으면 각각 빈 상태를 안내한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-ADM-006"
+      ],
+      "screen_desc": "라이선스 사용자 관리 모달 /admin/licenses 내부",
+      "apis": [
+        "GET /api/admin/licenses/{license_id}/assignments"
+      ],
+      "db": "license_assignments.status/valid_from/valid_until/request_id; users.name/department_id/job_title/email/profile_image; departments.name"
+    },
+    {
+      "id": "REQ-FUNC-021",
+      "major": "할당",
+      "minor": "기간",
+      "title": "권한 승인 기간 수정",
+      "detail": "라이선스 사용자 관리에서 수정 버튼을 선택하여 ACTIVE 할당의 권한 승인 시작일과 종료일을 변경한다. 시작일≤종료일을 클라이언트와 서버에서 검증하고 종료된 할당은 400으로 거부한다. 완료 후 사용자 목록을 재조회하여 변경 기간을 표시한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.25MD",
+      "screens": [
+        "SCR-ADM-010"
+      ],
+      "screen_desc": "권한 승인 기간 수정 모달 /admin/licenses 내부",
+      "apis": [
+        "PATCH /api/admin/license-assignments/{assignment_id}"
+      ],
+      "db": "license_assignments.status/valid_from/valid_until"
+    },
+    {
+      "id": "REQ-FUNC-019",
+      "major": "할당",
+      "minor": "회수",
+      "title": "관리자 권한 회수",
+      "detail": "사용자·SaaS·권한 승인 기간을 확인하고 회수 사유를 필수 입력한다. ACTIVE만 REVOKED로 변경하고 ended_by/ended_at/end_reason을 저장한다. 종료된 건은 400이다. 완료 후 현재 사용자/내 라이선스에서 제외되고 잔여 좌석이 증가한다. 할당 행은 보존한다.",
+      "actor": "MASTER",
+      "priority": "High",
+      "effort": "중 / 0.5MD",
+      "screens": [
+        "SCR-ADM-009"
+      ],
+      "screen_desc": "회수 모달 /admin/licenses 내부",
+      "apis": [
+        "POST /api/admin/license-assignments/{assignment_id}/revoke"
+      ],
+      "db": "license_assignments.status/valid_from/valid_until/ended_by/ended_at/end_reason; ACTIVE 집계 감소"
+    }
+  ],
+  "nonfunctional": [
+    [
+      "REQ-NFN-001",
+      "보안",
+      "비밀번호 보호",
+      "bcrypt 단방향 해시로 저장하며 평문 및 password_hash를 사용자 API 응답에 포함하지 않는다.",
+      "High",
+      "SCR-SIGNUP-001 / SCR-AUTH-001"
+    ],
+    [
+      "REQ-NFN-002",
+      "보안",
+      "인증·역할·소유권",
+      "JWT Access Token과 서버 권한 검증을 적용한다. USER의 관리자 API는 403, 타인 신청 취소·할당 반납도 403이다. 프런트엔드에도 역할별 Route Guard를 둔다.",
+      "High",
+      "SCR-COMMON-001 / 전체 보호 화면"
+    ],
+    [
+      "REQ-NFN-003",
+      "정합성",
+      "중복·초과 할당 방지",
+      "사용자+라이선스의 PENDING 신청/ACTIVE 할당을 부분 UNIQUE 인덱스로 제한한다. 좌석 변경 시 License 행 잠금, 승인+할당 생성의 단일 트랜잭션으로 동시 초과 승인을 방지한다.",
+      "High",
+      "SCR-LIC-002 / SCR-ADM-007"
+    ],
+    [
+      "REQ-NFN-004",
+      "정합성",
+      "좌석 단일 집계·이력 보존",
+      "used_seats 컬럼을 저장하지 않는다. 사용량은 ACTIVE Assignment COUNT, 잔여량은 총 좌석−사용량이다. 요청·할당 행을 삭제하지 않고 상태와 처리/종료 정보를 보존한다.",
+      "High",
+      "SCR-LIC-001 / SCR-ADM-001 / SCR-ADM-003"
+    ],
+    [
+      "REQ-NFN-005",
+      "사용성",
+      "Loading·Empty·Error",
+      "주요 화면에 로딩·빈 목록·API 오류 및 재시도를 제공한다. 승인/반려는 사유를 표시하고 반납/회수/취소는 확인 절차를 둔다. 오류는 code/message/fields 형식으로 처리한다.",
+      "High",
+      "전체 주요 목록·모달"
+    ],
+    [
+      "REQ-NFN-006",
+      "호환성",
+      "데스크톱 반응형",
+      "1440/1024/768px에서 레이아웃이 유지되도록 구성한다. 좁은 폭의 테이블은 내부 가로 스크롤한다. Chromium 기반 화면 흐름과 넘침을 검증했으며 모바일 앱 최적화는 범위 밖이다.",
+      "Medium",
+      "전체 화면"
+    ],
+    [
+      "REQ-NFN-007",
+      "갱신",
+      "변경 결과 반영",
+      "처리 완료 후 관련 목록을 서버에서 다시 조회한다. 다른 사용자의 변경은 창 복귀 또는 화면이 보이는 동안 30초 주기로 재조회한다. WebSocket 실시간 전파는 사용하지 않는다.",
+      "High",
+      "SCR-LIC-001 / SCR-REQ-001 / 관리자 목록"
+    ],
+    [
+      "REQ-NFN-008",
+      "유지보수",
+      "구조·재현 가능성",
+      "Vue 3/Vite/TypeScript/Pinia/Axios/Tailwind와 FastAPI/SQLAlchemy/Pydantic/PostgreSQL을 사용한다. Router/Service/Repository를 분리하고 Compose·Alembic·seed·환경 예제·의존성 잠금 파일을 제공한다.",
+      "High",
+      "전체 / 배포·개발 환경"
+    ],
+    [
+      "REQ-NFN-009",
+      "검증",
+      "기능·계약 검증",
+      "업무 규칙과 동시 승인 pytest, 핵심 표시 로직 Vitest, 실제 API 기반 Playwright 및 frontend build를 검증한다. OpenAPI는 실제 API에서, DBML은 ORM에서 생성하여 명세와 구현을 맞춘다.",
+      "High",
+      "전체 / API·DB 산출물"
+    ]
+  ]
+}

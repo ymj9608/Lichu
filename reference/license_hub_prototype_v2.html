@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>License Hub Prototype v2</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --panel:#fff; --text:#172033; --muted:#6f7a8d; --line:#e6eaf0;
+    --primary:#335cff; --primary-2:#eef2ff; --success:#12805c; --warning:#a86600;
+    --danger:#c83b49; --shadow:0 10px 30px rgba(34,50,84,.08); --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  .hidden{display:none!important}
+  .auth-shell{min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#f5f7ff,#f8fafc)}
+  .auth-card{width:min(980px,100%);display:grid;grid-template-columns:1fr 1.1fr;background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:0 24px 70px rgba(45,61,95,.12)}
+  .auth-side{background:#101725;color:#fff;padding:44px 38px;display:flex;flex-direction:column;justify-content:space-between;min-height:650px}
+  .brand{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px}
+  .brand-badge{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#5d7cff,#8c5cff);display:grid;place-items:center;font-weight:900}
+  .auth-side h2{font-size:34px;line-height:1.25;margin:32px 0 14px}
+  .auth-side p{color:#b8c1d1;line-height:1.7}
+  .demo-box{background:#1a2435;border:1px solid #2a3850;padding:14px;border-radius:12px;font-size:13px;color:#c6cede}
+  .auth-main{padding:40px}
+  .auth-tabs{display:flex;gap:8px;margin-bottom:24px}
+  .auth-tabs button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px;font-weight:700}
+  .auth-tabs button.active{background:var(--primary-2);color:var(--primary);border-color:#ced7ff}
+  .form-title{font-size:25px;font-weight:800;margin:0 0 6px}
+  .form-sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+  label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px}
+  input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff}
+  textarea{min-height:90px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .btn{border:0;border-radius:10px;padding:10px 13px;font-weight:700}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.secondary{background:var(--primary-2);color:#334cc3}
+  .btn.ghost{background:#f2f4f8;color:#39445a}
+  .btn.danger{background:#fdebed;color:var(--danger)}
+  .btn.success{background:#e8f7f1;color:var(--success)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .full{width:100%}
+  .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  aside{background:#101725;color:#fff;padding:24px 16px;position:sticky;top:0;height:100vh}
+  .role-chip{margin:22px 10px 18px;padding:10px 12px;border-radius:12px;background:#1a2435;color:#b8c1d1;font-size:13px}
+  nav button{display:flex;width:100%;gap:10px;align-items:center;border:0;background:transparent;color:#aeb7c8;padding:12px 14px;border-radius:10px;margin:4px 0;text-align:left}
+  nav button.active,nav button:hover{background:#1b2536;color:#fff}
+  .aside-bottom{position:absolute;left:16px;right:16px;bottom:18px;display:grid;gap:8px}
+  .switch{width:100%;background:#202b3d;color:#fff;border:1px solid #334157;border-radius:12px;padding:11px 12px}
+  main{padding:28px 34px 44px;max-width:1440px;width:100%;margin:auto}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:16px}
+  h1{font-size:28px;margin:0 0 6px}
+  .subtitle{color:var(--muted);font-size:14px}
+  .user{display:flex;align-items:center;gap:12px}
+  .avatar{width:38px;height:38px;border-radius:50%;background:#dfe5f5;display:grid;place-items:center;font-weight:700}
+  .toolbar{display:flex;gap:10px;margin:16px 0 22px;flex-wrap:wrap}
+  .search{flex:1;min-width:240px}
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .clickable{cursor:pointer;transition:.15s}
+  .clickable:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(34,50,84,.12)}
+  .card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .logo{width:44px;height:44px;border-radius:12px;background:#eef2ff;display:grid;place-items:center;font-weight:800;color:var(--primary)}
+  .soft-name{font-size:17px;font-weight:750;margin:10px 0 4px}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+  .badge{display:inline-flex;align-items:center;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:700}
+  .badge.ok{background:#e8f7f1;color:var(--success)}
+  .badge.full{background:#fff3dd;color:var(--warning)}
+  .badge.pending{background:#edf1ff;color:#445bd9}
+  .badge.active{background:#e8f7f1;color:var(--success)}
+  .badge.rejected{background:#fdebed;color:var(--danger)}
+  .badge.approved{background:#e8f7f1;color:var(--success)}
+  .progress{height:8px;background:#edf0f5;border-radius:999px;overflow:hidden;margin:16px 0 8px}
+  .progress > span{display:block;height:100%;background:var(--primary);border-radius:inherit}
+  .statline{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:15px}
+  .section{display:none}
+  .section.active{display:block}
+  .table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;min-width:860px}
+  th,td{padding:14px 16px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+  th{color:#536079;background:#fafbfc;font-size:13px}
+  tr:last-child td{border-bottom:0}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .actions .btn{padding:8px 10px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat strong{display:block;font-size:26px;margin-top:8px}
+  .two-col{display:grid;grid-template-columns:1.3fr .7fr;gap:18px}
+  .panel-title{font-size:17px;font-weight:800;margin:0 0 14px}
+  .request-item{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .request-item:last-child{border-bottom:0}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(14,22,36,.45);display:none;place-items:center;padding:20px;z-index:20}
+  .modal-backdrop.open{display:grid}
+  .modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:22px;box-shadow:0 20px 70px rgba(0,0,0,.18)}
+  .modal.wide{width:min(820px,100%)}
+  .modal h3{margin:0 0 6px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+  .user-list{display:grid;gap:10px;margin-top:16px}
+  .user-row{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px}
+  .reason-box{margin-top:8px;padding:10px 12px;border-radius:10px;background:#f8f9fc;border:1px solid var(--line);font-size:13px}
+  .reason-box.reject{background:#fff5f6;border-color:#f3cfd5;color:#8a2430}
+  .reason-box.approve{background:#f1faf6;border-color:#cfeadd;color:#146647}
+  .subtabs{display:flex;gap:8px;margin-bottom:14px}
+  .subtabs button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 11px;font-weight:700}
+  .subtabs button.active{background:var(--primary-2);color:var(--primary)}
+  .toast{position:fixed;right:26px;bottom:26px;background:#101725;color:#fff;padding:12px 15px;border-radius:12px;opacity:0;transform:translateY(8px);transition:.2s;z-index:30}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .hint{background:#fff8e8;border:1px solid #f4deb0;padding:12px 14px;border-radius:12px;color:#71531c;font-size:13px;margin-bottom:18px}
+  @media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
+  @media(max-width:760px){
+    .auth-card{grid-template-columns:1fr}.auth-side{min-height:auto}.app{grid-template-columns:1fr}
+    aside{position:relative;height:auto}.aside-bottom{position:static;margin-top:14px}
+    main{padding:22px 16px}.grid,.stats{grid-template-columns:1fr}.row{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authShell" class="auth-shell">
+  <div class="auth-card">
+    <section class="auth-side">
+      <div>
+        <div class="brand"><div class="brand-badge">L</div>License Hub</div>
+        <h2>사내 SaaS 라이선스를<br>한 곳에서 관리합니다.</h2>
+        <p>잔여 좌석 조회부터 사용 신청, 관리자 승인·반려, 실제 사용자 할당 및 회수까지 하나의 흐름으로 관리하는 B2B 업무 서비스 프로토타입입니다.</p>
+      </div>
+      <div class="demo-box">
+        <strong>프로토타입 계정</strong><br><br>
+        일반 사용자: <b>myeongjin / 1234</b><br>
+        마스터 관리자: <b>master / admin1234</b>
+      </div>
+    </section>
+
+    <section class="auth-main">
+      <div class="auth-tabs">
+        <button id="loginTabBtn" class="active">로그인</button>
+        <button id="signupTabBtn">회원가입</button>
+      </div>
+
+      <div id="loginPane">
+        <div class="form-title">로그인</div>
+        <div class="form-sub">사내 계정으로 License Hub에 접속합니다.</div>
+        <label>아이디</label>
+        <input id="loginId" placeholder="아이디 입력">
+        <label>비밀번호</label>
+        <input id="loginPw" type="password" placeholder="비밀번호 입력">
+        <button id="loginBtn" class="btn primary full" style="margin-top:18px">로그인</button>
+      </div>
+
+      <div id="signupPane" class="hidden">
+        <div class="form-title">직원 회원가입</div>
+        <div class="form-sub">실제 현업 사용을 가정한 기본 인사 정보를 입력합니다.</div>
+        <div class="row">
+          <div>
+            <label>사번 *</label>
+            <input id="suEmpNo" placeholder="예: SKA260908">
+          </div>
+          <div>
+            <label>이름 *</label>
+            <input id="suName" placeholder="홍길동">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>부서 *</label>
+            <select id="suDept">
+              <option value="">부서 선택</option>
+              <option>개발팀</option><option>디자인팀</option><option>기획팀</option><option>마케팅팀</option><option>경영지원팀</option>
+            </select>
+          </div>
+          <div>
+            <label>직급/직책 *</label>
+            <input id="suPosition" placeholder="예: 사원, Backend Developer">
+          </div>
+        </div>
+        <label>회사 이메일 *</label>
+        <input id="suEmail" type="email" placeholder="name@company.com">
+        <div class="row">
+          <div>
+            <label>아이디 *</label>
+            <input id="suId" placeholder="로그인 아이디">
+          </div>
+          <div>
+            <label>비밀번호 *</label>
+            <input id="suPw" type="password" placeholder="8자 이상 권장">
+          </div>
+        </div>
+        <button id="signupBtn" class="btn primary full" style="margin-top:18px">가입하기</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell" class="app hidden">
+  <aside>
+    <div class="brand"><div class="brand-badge">L</div>License Hub</div>
+    <div class="role-chip" id="roleChip"></div>
+
+    <nav id="employeeNav">
+      <button class="active" data-section="catalog">▦ 라이선스 탐색</button>
+      <button data-section="requests">◷ 내 신청</button>
+      <button data-section="mylicenses">✓ 내 라이선스</button>
+    </nav>
+
+    <nav id="adminNav" style="display:none">
+      <button class="active" data-section="adminDashboard">▦ 대시보드</button>
+      <button data-section="adminRequests">◷ 신청 관리</button>
+      <button data-section="adminLicenses">▣ 라이선스 관리</button>
+    </nav>
+
+    <div class="aside-bottom">
+      <button class="switch hidden" id="modeSwitch"></button>
+      <button class="switch" id="logoutBtn">로그아웃</button>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div>
+        <h1 id="pageTitle"></h1>
+        <div class="subtitle" id="pageSubtitle"></div>
+      </div>
+      <div class="user">
+        <div style="text-align:right">
+          <strong id="headerUserName"></strong><br>
+          <span class="muted small" id="userRole"></span>
+        </div>
+        <div class="avatar" id="headerAvatar"></div>
+      </div>
+    </header>
+
+    <section id="catalog" class="section active">
+      <div class="hint">프로토타입 범위: 실제 SaaS Provider의 계정 자동 발급은 제외하고, 사내 신청 → 승인/반려 → 할당 → 회수/반납 흐름을 표현합니다.</div>
+      <div class="toolbar">
+        <input class="search" id="searchInput" placeholder="소프트웨어 이름 검색" />
+        <select id="categoryFilter" style="width:auto">
+          <option value="all">전체 카테고리</option>
+          <option value="개발">개발</option>
+          <option value="디자인">디자인</option>
+          <option value="생산성">생산성</option>
+        </select>
+      </div>
+      <div class="grid" id="catalogGrid"></div>
+    </section>
+
+    <section id="requests" class="section">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>소프트웨어</th><th>신청일</th><th>사용 예정 기간</th><th>상태</th><th>처리 사유</th><th>작업</th></tr></thead>
+          <tbody id="myRequestRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="mylicenses" class="section">
+      <div class="grid" id="myLicenseGrid"></div>
+    </section>
+
+    <section id="adminDashboard" class="section">
+      <div class="stats">
+        <div class="stat"><span class="muted small">총 좌석</span><strong id="statTotal">0</strong></div>
+        <div class="stat"><span class="muted small">사용 중</span><strong id="statUsed">0</strong></div>
+        <div class="stat"><span class="muted small">사용 가능</span><strong id="statAvailable">0</strong></div>
+        <div class="stat"><span class="muted small">승인 대기</span><strong id="statPending">0</strong></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="panel-title">라이선스 사용 현황</div>
+          <div id="usageBars"></div>
+        </div>
+        <div class="card">
+          <div class="panel-title">최근 승인 대기</div>
+          <div id="recentRequests"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="adminRequests" class="section">
+      <div class="subtabs">
+        <button id="pendingTab" class="active">승인 대기</button>
+        <button id="historyTab">처리 이력</button>
+      </div>
+      <div id="pendingPanel" class="table-wrap">
+        <table>
+          <thead><tr><th>신청자</th><th>소프트웨어</th><th>사용 목적</th><th>기간</th><th>상태</th><th>처리</th></tr></thead>
+          <tbody id="adminRequestRows"></tbody>
+        </table>
+      </div>
+      <div id="historyPanel" class="table-wrap hidden">
+        <table>
+          <thead><tr><th>신청자</th><th>소프트웨어</th><th>결과</th><th>처리자</th><th>처리 사유</th><th>처리일</th></tr></thead>
+          <tbody id="historyRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="adminLicenses" class="section">
+      <div class="grid" id="adminLicenseCards"></div>
+    </section>
+  </main>
+</div>
+
+<!-- 신청 모달 -->
+<div class="modal-backdrop" id="requestModal">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <div class="muted small" id="modalMeta"></div>
+    <label>사용 목적 *</label>
+    <textarea id="reasonInput" placeholder="예: AI 서비스 개발 프로젝트에서 코드 보조 도구가 필요합니다."></textarea>
+    <div class="row">
+      <div><label>사용 시작일</label><input type="date" id="startDate"></div>
+      <div><label>사용 종료 예정일</label><input type="date" id="endDate"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('requestModal')">취소</button>
+      <button class="btn primary" id="modalSubmit">신청하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 승인/반려 모달 -->
+<div class="modal-backdrop" id="decisionModal">
+  <div class="modal">
+    <h3 id="decisionTitle">신청 처리</h3>
+    <div id="decisionSummary" class="muted small"></div>
+    <label id="decisionReasonLabel">처리 사유 *</label>
+    <textarea id="decisionReason" placeholder="승인 또는 반려 사유를 입력해주세요."></textarea>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('decisionModal')">취소</button>
+      <button class="btn primary" id="decisionSubmit">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 라이선스 사용자 목록 모달 -->
+<div class="modal-backdrop" id="licenseUsersModal">
+  <div class="modal wide">
+    <h3 id="licenseUsersTitle">라이선스 사용자</h3>
+    <div id="licenseUsersMeta" class="muted small"></div>
+    <div class="user-list" id="licenseUserList"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('licenseUsersModal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 회수 사유 모달 -->
+<div class="modal-backdrop" id="revokeModal">
+  <div class="modal">
+    <h3>라이선스 권한 회수</h3>
+    <div id="revokeSummary" class="muted small"></div>
+    <label>회수 사유 *</label>
+    <textarea id="revokeReason" placeholder="예: 프로젝트 종료, 미사용 장기화, 퇴사 예정 등"></textarea>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal('revokeModal')">취소</button>
+      <button class="btn danger" id="revokeSubmit">권한 회수</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const softwares = [
+  {id:1,name:"GitHub Copilot",category:"개발",total:50,price:"$19",initial:"GH"},
+  {id:2,name:"Figma Professional",category:"디자인",total:30,price:"$15",initial:"Fi"},
+  {id:3,name:"IntelliJ IDEA Ultimate",category:"개발",total:20,price:"$16",initial:"IJ"},
+  {id:4,name:"Adobe Creative Cloud",category:"디자인",total:20,price:"$60",initial:"CC"},
+  {id:5,name:"Notion Business",category:"생산성",total:40,price:"$15",initial:"No"},
+  {id:6,name:"Slack Pro",category:"생산성",total:80,price:"$9",initial:"Sl"}
+];
+
+let users = [
+  {id:1,empNo:"SKA260001",name:"윤명진",dept:"개발팀",position:"Backend Developer",email:"myeongjin@company.com",loginId:"myeongjin",password:"1234",role:"USER"},
+  {id:2,empNo:"MST000001",name:"마스터 관리자",dept:"IT자산관리팀",position:"IT Asset Manager",email:"master@company.com",loginId:"master",password:"admin1234",role:"MASTER"},
+  {id:3,empNo:"SKA260002",name:"김서연",dept:"디자인팀",position:"Product Designer",email:"seoyeon@company.com",loginId:"seoyeon",password:"1234",role:"USER"},
+  {id:4,empNo:"SKA260003",name:"박지훈",dept:"개발팀",position:"Frontend Developer",email:"jihoon@company.com",loginId:"jihoon",password:"1234",role:"USER"},
+  {id:5,empNo:"SKA260004",name:"이하은",dept:"기획팀",position:"Product Manager",email:"haeun@company.com",loginId:"haeun",password:"1234",role:"USER"}
+];
+
+let requests = [
+  {id:101,userId:1,softwareId:2,reason:"프로토타입 UI 협업",start:"2026-09-10",end:"2026-10-31",status:"PENDING",date:"2026-09-08",decisionReason:"",processedBy:null,processedAt:null},
+  {id:102,userId:3,softwareId:4,reason:"브랜드 리뉴얼 프로젝트",start:"2026-09-09",end:"2026-12-31",status:"PENDING",date:"2026-09-08",decisionReason:"",processedBy:null,processedAt:null},
+  {id:103,userId:4,softwareId:1,reason:"백엔드 코드 리뷰 자동화",start:"2026-09-01",end:"2026-12-31",status:"APPROVED",date:"2026-08-31",decisionReason:"프로젝트 기간 동안 사용 승인",processedBy:2,processedAt:"2026-09-01"},
+  {id:104,userId:5,softwareId:5,reason:"프로젝트 문서 관리",start:"2026-09-05",end:"2026-12-31",status:"REJECTED",date:"2026-09-05",decisionReason:"기획팀 공용 Notion 워크스페이스를 우선 사용해주세요.",processedBy:2,processedAt:"2026-09-06"}
+];
+
+let assignments = [
+  {id:201,userId:1,softwareId:1,assigned:"2026-08-20",status:"ACTIVE",endedAt:null,endReason:""},
+  {id:202,userId:1,softwareId:5,assigned:"2026-07-01",status:"ACTIVE",endedAt:null,endReason:""},
+  {id:203,userId:3,softwareId:2,assigned:"2026-08-10",status:"ACTIVE",endedAt:null,endReason:""},
+  {id:204,userId:4,softwareId:3,assigned:"2026-08-05",status:"ACTIVE",endedAt:null,endReason:""},
+  {id:205,userId:5,softwareId:5,assigned:"2026-08-18",status:"ACTIVE",endedAt:null,endReason:""}
+];
+
+// 데모용 좌석 사용량을 현실적으로 보이게 하기 위한 "기타 사내 사용자" 수
+const baselineUsed = {1:46,2:28,3:19,4:7,5:30,6:74};
+
+let currentUser = null;
+let currentSoftwareId = null;
+let decisionRequestId = null;
+let decisionType = null;
+let revokeAssignmentId = null;
+
+const titles = {
+  catalog:["라이선스 탐색","사내 SaaS 좌석 현황을 확인하고 필요한 라이선스를 신청합니다."],
+  requests:["내 신청","신청 상태와 승인·반려 사유를 확인합니다."],
+  mylicenses:["내 라이선스","현재 할당된 라이선스를 확인하고 직접 반납할 수 있습니다."],
+  adminDashboard:["관리자 대시보드","전체 SaaS 라이선스 사용 현황과 승인 대기 요청을 확인합니다."],
+  adminRequests:["신청 관리","승인 대기 건을 처리하고, 처리 이력을 확인합니다."],
+  adminLicenses:["라이선스 관리","라이선스를 클릭해 실제 사용자를 확인하고 개별 권한을 회수할 수 있습니다."]
+};
+
+function software(id){return softwares.find(s=>s.id===id)}
+function user(id){return users.find(u=>u.id===id)}
+function activeAssignmentCount(softwareId){return assignments.filter(a=>a.softwareId===softwareId&&a.status==="ACTIVE").length}
+function usedSeats(s){return Math.min(s.total, (baselineUsed[s.id]||0) + activeAssignmentCount(s.id))}
+function availableSeats(s){return Math.max(0,s.total-usedSeats(s))}
+function statusBadge(status){
+  const map={PENDING:["pending","승인 대기"],APPROVED:["approved","승인"],REJECTED:["rejected","반려"],ACTIVE:["active","사용 중"],RETURNED:["full","반납"],REVOKED:["rejected","회수"]};
+  const [cls,txt]=map[status]||["pending",status]; return `<span class="badge ${cls}">${txt}</span>`;
+}
+function toast(msg){
+  const el=document.getElementById("toast"); el.textContent=msg; el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),1800);
+}
+window.closeModal=function(id){document.getElementById(id).classList.remove("open")}
+
+function setAuthTab(mode){
+  const login=mode==="login";
+  document.getElementById("loginPane").classList.toggle("hidden",!login);
+  document.getElementById("signupPane").classList.toggle("hidden",login);
+  document.getElementById("loginTabBtn").classList.toggle("active",login);
+  document.getElementById("signupTabBtn").classList.toggle("active",!login);
+}
+document.getElementById("loginTabBtn").onclick=()=>setAuthTab("login");
+document.getElementById("signupTabBtn").onclick=()=>setAuthTab("signup");
+
+document.getElementById("signupBtn").onclick=()=>{
+  const fields={
+    empNo:document.getElementById("suEmpNo").value.trim(),
+    name:document.getElementById("suName").value.trim(),
+    dept:document.getElementById("suDept").value,
+    position:document.getElementById("suPosition").value.trim(),
+    email:document.getElementById("suEmail").value.trim(),
+    loginId:document.getElementById("suId").value.trim(),
+    password:document.getElementById("suPw").value
+  };
+  if(Object.values(fields).some(v=>!v)){toast("필수 정보를 모두 입력해주세요.");return;}
+  if(users.some(u=>u.loginId===fields.loginId)){toast("이미 사용 중인 아이디입니다.");return;}
+  if(users.some(u=>u.empNo===fields.empNo)){toast("이미 등록된 사번입니다.");return;}
+  users.push({id:Date.now(),...fields,role:"USER"});
+  toast("회원가입이 완료되었습니다. 로그인해주세요.");
+  document.getElementById("loginId").value=fields.loginId;
+  setAuthTab("login");
+};
+
+document.getElementById("loginBtn").onclick=()=>{
+  const id=document.getElementById("loginId").value.trim();
+  const pw=document.getElementById("loginPw").value;
+  const found=users.find(u=>u.loginId===id&&u.password===pw);
+  if(!found){toast("아이디 또는 비밀번호가 올바르지 않습니다.");return;}
+  currentUser=found;
+  document.getElementById("authShell").classList.add("hidden");
+  document.getElementById("appShell").classList.remove("hidden");
+  setupAppForUser();
+};
+
+document.getElementById("logoutBtn").onclick=()=>{
+  currentUser=null;
+  document.getElementById("appShell").classList.add("hidden");
+  document.getElementById("authShell").classList.remove("hidden");
+  document.getElementById("loginPw").value="";
+};
+
+function setupAppForUser(){
+  const isMaster=currentUser.role==="MASTER";
+  document.getElementById("employeeNav").style.display=isMaster?"none":"block";
+  document.getElementById("adminNav").style.display=isMaster?"block":"none";
+  document.getElementById("roleChip").textContent=isMaster?`마스터 관리자 · ${currentUser.dept}`:`직원 · ${currentUser.dept}`;
+  document.getElementById("headerUserName").textContent=currentUser.name;
+  document.getElementById("userRole").textContent=currentUser.position;
+  document.getElementById("headerAvatar").textContent=currentUser.name.slice(0,1);
+  switchSection(isMaster?"adminDashboard":"catalog");
+  renderAll();
+}
+
+document.querySelectorAll("nav button").forEach(btn=>btn.addEventListener("click",()=>switchSection(btn.dataset.section)));
+function switchSection(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.section===id));
+  document.getElementById("pageTitle").textContent=titles[id][0];
+  document.getElementById("pageSubtitle").textContent=titles[id][1];
+}
+
+function renderCatalog(){
+  if(!currentUser||currentUser.role==="MASTER")return;
+  const q=document.getElementById("searchInput").value.trim().toLowerCase();
+  const c=document.getElementById("categoryFilter").value;
+  const list=softwares.filter(s=>(!q||s.name.toLowerCase().includes(q))&&(c==="all"||s.category===c));
+  document.getElementById("catalogGrid").innerHTML=list.map(s=>{
+    const used=usedSeats(s), avail=availableSeats(s), pct=Math.round(used/s.total*100);
+    const active=assignments.some(a=>a.userId===currentUser.id&&a.softwareId===s.id&&a.status==="ACTIVE");
+    const pending=requests.some(r=>r.userId===currentUser.id&&r.softwareId===s.id&&r.status==="PENDING");
+    let btn=`<button class="btn primary full" onclick="openRequest(${s.id})">사용 신청</button>`;
+    if(active)btn=`<button class="btn ghost full" disabled>이미 사용 중</button>`;
+    else if(pending)btn=`<button class="btn ghost full" disabled>신청 검토 중</button>`;
+    return `<div class="card">
+      <div class="card-head"><div class="logo">${s.initial}</div><span class="badge ${avail>0?"ok":"full"}">${avail>0?`${avail} seats available`:"No seats"}</span></div>
+      <div class="soft-name">${s.name}</div><div class="muted small">${s.category} · ${s.price} / user / month</div>
+      <div class="progress"><span style="width:${pct}%"></span></div>
+      <div class="statline"><span>${used} / ${s.total} 사용 중</span><strong>${pct}%</strong></div>${btn}
+    </div>`;
+  }).join("");
+}
+
+function renderMyRequests(){
+  if(!currentUser)return;
+  const rows=requests.filter(r=>r.userId===currentUser.id).sort((a,b)=>b.id-a.id);
+  document.getElementById("myRequestRows").innerHTML=rows.map(r=>`
+    <tr>
+      <td><strong>${software(r.softwareId).name}</strong></td>
+      <td>${r.date}</td>
+      <td>${r.start} ~ ${r.end}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${r.decisionReason?`<div class="reason-box ${r.status==="REJECTED"?"reject":"approve"}">${r.decisionReason}</div>`:"-"}</td>
+      <td>${r.status==="PENDING"?`<button class="btn danger" onclick="cancelRequest(${r.id})">신청 취소</button>`:"-"}</td>
+    </tr>`).join("") || `<tr><td colspan="6" class="empty">신청 내역이 없습니다.</td></tr>`;
+}
+
+function renderMyLicenses(){
+  if(!currentUser)return;
+  const list=assignments.filter(a=>a.userId===currentUser.id&&a.status==="ACTIVE");
+  document.getElementById("myLicenseGrid").innerHTML=list.map(a=>{
+    const s=software(a.softwareId);
+    return `<div class="card">
+      <div class="card-head"><div class="logo">${s.initial}</div>${statusBadge("ACTIVE")}</div>
+      <div class="soft-name">${s.name}</div><div class="muted small">${s.category}</div>
+      <div style="margin:18px 0 14px" class="small">할당일 <strong style="float:right">${a.assigned}</strong></div>
+      <button class="btn ghost full" onclick="returnLicense(${a.id})">직접 반납</button>
+    </div>`;
+  }).join("") || `<div class="empty">사용 중인 라이선스가 없습니다.</div>`;
+}
+
+function renderAdmin(){
+  const total=softwares.reduce((a,s)=>a+s.total,0);
+  const used=softwares.reduce((a,s)=>a+usedSeats(s),0);
+  const pending=requests.filter(r=>r.status==="PENDING");
+  document.getElementById("statTotal").textContent=total;
+  document.getElementById("statUsed").textContent=used;
+  document.getElementById("statAvailable").textContent=total-used;
+  document.getElementById("statPending").textContent=pending.length;
+
+  document.getElementById("usageBars").innerHTML=softwares.map(s=>{
+    const used=usedSeats(s), pct=Math.round(used/s.total*100);
+    return `<div style="margin-bottom:16px">
+      <div class="statline"><span><strong>${s.name}</strong></span><span>${used}/${s.total} · ${pct}%</span></div>
+      <div class="progress" style="margin:0"><span style="width:${pct}%"></span></div>
+    </div>`;
+  }).join("");
+
+  document.getElementById("recentRequests").innerHTML=pending.slice(0,4).map(r=>`
+    <div class="request-item"><div><strong>${user(r.userId).name}</strong><div class="muted small">${software(r.softwareId).name}</div></div>${statusBadge(r.status)}</div>`
+  ).join("") || `<div class="empty">승인 대기 요청이 없습니다.</div>`;
+
+  document.getElementById("adminRequestRows").innerHTML=pending.map(r=>`
+    <tr>
+      <td><strong>${user(r.userId).name}</strong><div class="muted small">${user(r.userId).dept}</div></td>
+      <td>${software(r.softwareId).name}</td><td>${r.reason}</td>
+      <td>${r.start}<br><span class="muted small">~ ${r.end}</span></td>
+      <td>${statusBadge(r.status)}</td>
+      <td><div class="actions">
+        <button class="btn secondary" onclick="openDecision(${r.id},'APPROVE')">승인</button>
+        <button class="btn danger" onclick="openDecision(${r.id},'REJECT')">반려</button>
+      </div></td>
+    </tr>`).join("") || `<tr><td colspan="6" class="empty">승인 대기 요청이 없습니다.</td></tr>`;
+
+  const history=requests.filter(r=>r.status!=="PENDING").sort((a,b)=>(b.processedAt||"").localeCompare(a.processedAt||""));
+  document.getElementById("historyRows").innerHTML=history.map(r=>`
+    <tr>
+      <td><strong>${user(r.userId).name}</strong><div class="muted small">${user(r.userId).dept}</div></td>
+      <td>${software(r.softwareId).name}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${r.processedBy?user(r.processedBy).name:"-"}</td>
+      <td>${r.decisionReason||"-"}</td>
+      <td>${r.processedAt||"-"}</td>
+    </tr>`).join("");
+
+  document.getElementById("adminLicenseCards").innerHTML=softwares.map(s=>{
+    const used=usedSeats(s), avail=availableSeats(s), pct=Math.round(used/s.total*100);
+    return `<div class="card clickable" onclick="openLicenseUsers(${s.id})">
+      <div class="card-head"><div class="logo">${s.initial}</div><span class="badge ${avail>0?"ok":"full"}">${avail} seats</span></div>
+      <div class="soft-name">${s.name}</div><div class="muted small">${s.category} · ${s.price} / user / month</div>
+      <div class="progress"><span style="width:${pct}%"></span></div>
+      <div class="statline"><span>${used} / ${s.total} 사용 중</span><strong>${pct}%</strong></div>
+      <div class="muted small">클릭하여 사용자 목록 및 권한 회수 관리 →</div>
+    </div>`;
+  }).join("");
+}
+
+function renderAll(){renderCatalog();renderMyRequests();renderMyLicenses();renderAdmin()}
+document.getElementById("searchInput").addEventListener("input",renderCatalog);
+document.getElementById("categoryFilter").addEventListener("change",renderCatalog);
+
+window.openRequest=function(id){
+  currentSoftwareId=id; const s=software(id);
+  document.getElementById("modalTitle").textContent=`${s.name} 사용 신청`;
+  document.getElementById("modalMeta").textContent=`현재 ${usedSeats(s)}/${s.total} 사용 중 · 잔여 ${availableSeats(s)} seats`;
+  document.getElementById("reasonInput").value="";
+  document.getElementById("startDate").value="2026-09-10";
+  document.getElementById("endDate").value="2026-12-31";
+  document.getElementById("requestModal").classList.add("open");
+};
+
+document.getElementById("modalSubmit").onclick=()=>{
+  const reason=document.getElementById("reasonInput").value.trim();
+  if(!reason){toast("사용 목적을 입력해주세요.");return;}
+  requests.push({id:Date.now(),userId:currentUser.id,softwareId:currentSoftwareId,reason,
+    start:document.getElementById("startDate").value,end:document.getElementById("endDate").value,
+    status:"PENDING",date:"2026-09-08",decisionReason:"",processedBy:null,processedAt:null});
+  closeModal("requestModal"); renderAll(); toast("라이선스 신청이 등록되었습니다.");
+};
+
+window.cancelRequest=function(id){
+  requests=requests.filter(r=>r.id!==id); renderAll(); toast("신청을 취소했습니다.");
+};
+
+window.returnLicense=function(id){
+  const a=assignments.find(x=>x.id===id); if(!a)return;
+  a.status="RETURNED"; a.endedAt="2026-09-08"; a.endReason="사용자 직접 반납";
+  renderAll(); toast("라이선스를 반납했습니다.");
+};
+
+window.openDecision=function(id,type){
+  decisionRequestId=id; decisionType=type;
+  const r=requests.find(x=>x.id===id), u=user(r.userId), s=software(r.softwareId);
+  document.getElementById("decisionTitle").textContent=type==="APPROVE"?"라이선스 신청 승인":"라이선스 신청 반려";
+  document.getElementById("decisionSummary").textContent=`${u.name} · ${u.dept} · ${s.name}`;
+  document.getElementById("decisionReasonLabel").textContent=type==="APPROVE"?"승인 사유 *":"반려 사유 *";
+  document.getElementById("decisionReason").placeholder=type==="APPROVE"?"예: 프로젝트 기간 동안 사용 승인":"예: 잔여 좌석 부족, 기존 공용 계정 사용 권장 등";
+  document.getElementById("decisionReason").value="";
+  document.getElementById("decisionSubmit").className=`btn ${type==="APPROVE"?"primary":"danger"}`;
+  document.getElementById("decisionSubmit").textContent=type==="APPROVE"?"승인 확정":"반려 확정";
+  document.getElementById("decisionModal").classList.add("open");
+};
+
+document.getElementById("decisionSubmit").onclick=()=>{
+  const reason=document.getElementById("decisionReason").value.trim();
+  if(!reason){toast("처리 사유를 입력해주세요.");return;}
+  const r=requests.find(x=>x.id===decisionRequestId);
+  const s=software(r.softwareId);
+  if(decisionType==="APPROVE"){
+    if(availableSeats(s)<=0){toast("잔여 좌석이 없어 승인할 수 없습니다.");return;}
+    const already=assignments.some(a=>a.userId===r.userId&&a.softwareId===r.softwareId&&a.status==="ACTIVE");
+    if(already){toast("이미 해당 라이선스를 사용 중인 사용자입니다.");return;}
+    r.status="APPROVED";
+    assignments.push({id:Date.now(),userId:r.userId,softwareId:r.softwareId,assigned:"2026-09-08",status:"ACTIVE",endedAt:null,endReason:""});
+  }else{
+    r.status="REJECTED";
+  }
+  r.decisionReason=reason; r.processedBy=currentUser.id; r.processedAt="2026-09-08";
+  closeModal("decisionModal"); renderAll();
+  toast(decisionType==="APPROVE"?"승인 및 좌석 할당이 완료되었습니다.":"신청을 반려했습니다.");
+};
+
+window.openLicenseUsers=function(softwareId){
+  const s=software(softwareId), list=assignments.filter(a=>a.softwareId===softwareId&&a.status==="ACTIVE");
+  document.getElementById("licenseUsersTitle").textContent=`${s.name} 사용자 관리`;
+  document.getElementById("licenseUsersMeta").textContent=`총 ${s.total}석 · 사용 ${usedSeats(s)}석 · 잔여 ${availableSeats(s)}석`;
+  document.getElementById("licenseUserList").innerHTML=list.map(a=>{
+    const u=user(a.userId);
+    return `<div class="user-row">
+      <div>
+        <strong>${u.name}</strong> <span class="muted small">(${u.empNo})</span>
+        <div class="muted small">${u.dept} · ${u.position} · ${u.email}</div>
+        <div class="muted small">할당일 ${a.assigned}</div>
+      </div>
+      <button class="btn danger" onclick="openRevoke(${a.id})">권한 회수</button>
+    </div>`;
+  }).join("") || `<div class="empty">프로토타입에 등록된 개별 사용자가 없습니다.<br><span class="small">기타 사내 사용자 수는 좌석 집계에만 반영됩니다.</span></div>`;
+  document.getElementById("licenseUsersModal").classList.add("open");
+};
+
+window.openRevoke=function(assignmentId){
+  revokeAssignmentId=assignmentId;
+  const a=assignments.find(x=>x.id===assignmentId), u=user(a.userId), s=software(a.softwareId);
+  document.getElementById("revokeSummary").textContent=`${u.name} · ${u.dept} · ${s.name}`;
+  document.getElementById("revokeReason").value="";
+  closeModal("licenseUsersModal");
+  document.getElementById("revokeModal").classList.add("open");
+};
+
+document.getElementById("revokeSubmit").onclick=()=>{
+  const reason=document.getElementById("revokeReason").value.trim();
+  if(!reason){toast("회수 사유를 입력해주세요.");return;}
+  const a=assignments.find(x=>x.id===revokeAssignmentId); if(!a)return;
+  a.status="REVOKED"; a.endedAt="2026-09-08"; a.endReason=reason;
+  closeModal("revokeModal"); renderAll(); toast("사용자의 라이선스 권한을 회수했습니다.");
+};
+
+document.getElementById("pendingTab").onclick=()=>{
+  document.getElementById("pendingPanel").classList.remove("hidden");
+  document.getElementById("historyPanel").classList.add("hidden");
+  document.getElementById("pendingTab").classList.add("active");
+  document.getElementById("historyTab").classList.remove("active");
+};
+document.getElementById("historyTab").onclick=()=>{
+  document.getElementById("pendingPanel").classList.add("hidden");
+  document.getElementById("historyPanel").classList.remove("hidden");
+  document.getElementById("pendingTab").classList.remove("active");
+  document.getElementById("historyTab").classList.add("active");
+};
+
+// 모달 바깥 클릭 닫기
+document.querySelectorAll(".modal-backdrop").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open")}));
+</script>
+</body>
+</html>
