@@ -1,0 +1,4133 @@
+openapi: 3.1.0
+info:
+  title: LiChU. 사내 SaaS 라이선스 관리 API
+  description: 사용 신청 → 관리자 승인·반려 → 할당 → 반납·회수. 실제 구현의 OpenAPI를 기준으로 작성. 제출 지침에 따라 Security Schemes는 제외하며, 실제 보호 API는 Bearer
+    JWT와 역할·소유권 검증을 사용한다. 날짜는 YYYY-MM-DD, 시각은 ISO-8601 UTC. 필드 오류는 422, 잘못된 업무 상태는 400, 동시 충돌·좌석 부족은 409이다.
+  version: 1.2.0
+paths:
+  /api/departments:
+    get:
+      tags:
+      - Auth
+      summary: 회원가입 부서 목록
+      operationId: departments_api_departments_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DepartmentOut'
+                type: array
+                title: Response Departments Api Departments Get
+              example:
+              - id: 2
+                name: 개발팀
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '사번·이름·부서·직급/직책·회사 이메일·아이디·비밀번호·확인을 입력하고 JPG/PNG/WEBP 프로필 사진을 선택 등록한다. 사진 미등록 시 기본 프로필을 사용한다. 사번/아이디/이메일은
+        중복 불가(409), 아이디 4자 이상, 비밀번호 8자 이상·UTF-8 72바이트 이하 및 확인 일치. 부서는 DB 목록에서 선택한다. USER로만 생성하며 성공 시 로그인 화면으로 이동한다.
+
+        헤더의 사용자 정보를 선택하면 이름·부서·직급/직책·회사 이메일과 프로필 사진을 수정한다. JPG/PNG/WEBP를 허용하며 별도의 파일 용량 제한은 두지 않는다. 사진을 등록하지 않거나 제거하면 공통 기본
+        프로필 이미지를 표시하고, 등록된 사진은 헤더·승인 대기·사용자 관리에 표시한다. 사번과 아이디는 읽기 전용이며 이메일 중복과 부서 유효성을 서버에서 검사한다.
+
+
+        요구사항: REQ-FUNC-001, REQ-FUNC-020
+
+        화면: SCR-SIGNUP-001, SCR-COMMON-002
+
+        테이블: departments, users
+
+        접근: 공개'
+      x-requirements:
+      - REQ-FUNC-001
+      - REQ-FUNC-020
+      x-screens:
+      - SCR-SIGNUP-001
+      - SCR-COMMON-002
+      x-tables:
+      - departments
+      - users
+      x-access: 공개
+  /api/auth/signup:
+    post:
+      tags:
+      - Auth
+      summary: 직원 회원가입
+      operationId: signup_api_auth_signup_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signup'
+            example:
+              employee_no: EMP000001
+              name: 윤명진
+              department_id: 2
+              job_title: Backend Developer
+              email: myeongjin@example.com
+              username: myeongjin
+              password: ExampleOnly2026!
+              password_confirm: ExampleOnly2026!
+              profile_image: null
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+              example:
+                id: 2
+                employee_no: EMP000001
+                name: 윤명진
+                department_id: 2
+                department:
+                  id: 2
+                  name: 개발팀
+                job_title: Backend Developer
+                email: myeongjin@example.com
+                username: myeongjin
+                role: USER
+                profile_image: null
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+        '409':
+          description: 'DUPLICATE_USER: 가입 정보 또는 이메일이 중복됩니다. / CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                DUPLICATE_USER:
+                  summary: DUPLICATE_USER
+                  value:
+                    code: DUPLICATE_USER
+                    message: 가입 정보 또는 이메일이 중복됩니다.
+                    fields: {}
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '422':
+          description: 'INVALID_DEPARTMENT: 부서를 선택해주세요. / VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_DEPARTMENT:
+                  summary: INVALID_DEPARTMENT
+                  value:
+                    code: INVALID_DEPARTMENT
+                    message: 부서를 선택해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '사번·이름·부서·직급/직책·회사 이메일·아이디·비밀번호·확인을 입력하고 JPG/PNG/WEBP 프로필 사진을 선택 등록한다. 사진 미등록 시 기본 프로필을 사용한다. 사번/아이디/이메일은
+        중복 불가(409), 아이디 4자 이상, 비밀번호 8자 이상·UTF-8 72바이트 이하 및 확인 일치. 부서는 DB 목록에서 선택한다. USER로만 생성하며 성공 시 로그인 화면으로 이동한다.
+
+
+        요구사항: REQ-FUNC-001
+
+        화면: SCR-SIGNUP-001
+
+        테이블: departments, users
+
+        접근: 공개'
+      x-requirements:
+      - REQ-FUNC-001
+      x-screens:
+      - SCR-SIGNUP-001
+      x-tables:
+      - departments
+      - users
+      x-access: 공개
+  /api/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: 아이디와 비밀번호 로그인
+      operationId: login_api_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+            example:
+              username: myeongjin
+              password: ExampleOnly2026!
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenOut'
+              example:
+                access_token: example.jwt.token
+                token_type: bearer
+        '401':
+          description: 'INVALID_CREDENTIALS: 아이디 또는 비밀번호가 올바르지 않습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_CREDENTIALS:
+                  summary: INVALID_CREDENTIALS
+                  value:
+                    code: INVALID_CREDENTIALS
+                    message: 아이디 또는 비밀번호가 올바르지 않습니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '아이디·비밀번호로 인증하고 JWT Access Token을 발급한다. 로그인 정보 저장은 비밀번호 대신 아이디만 브라우저에 보관한다. ID/비밀번호 찾기 버튼에서 사내 계정 문의 절차를
+        안내한다. USER는 라이선스 탐색, MASTER는 관리자 대시보드로 이동한다. 인증 실패는 401과 오류 메시지를 표시한다.
+
+
+        요구사항: REQ-FUNC-002
+
+        화면: SCR-AUTH-001
+
+        테이블: users, departments
+
+        접근: 공개'
+      x-requirements:
+      - REQ-FUNC-002
+      x-screens:
+      - SCR-AUTH-001
+      x-tables:
+      - users
+      - departments
+      x-access: 공개
+  /api/auth/me:
+    get:
+      tags:
+      - Auth
+      summary: 현재 로그인 사용자
+      operationId: me_api_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+              example:
+                id: 2
+                employee_no: EMP000001
+                name: 윤명진
+                department_id: 2
+                department:
+                  id: 2
+                  name: 개발팀
+                job_title: Backend Developer
+                email: myeongjin@example.com
+                username: myeongjin
+                role: USER
+                profile_image: null
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '아이디·비밀번호로 인증하고 JWT Access Token을 발급한다. 로그인 정보 저장은 비밀번호 대신 아이디만 브라우저에 보관한다. ID/비밀번호 찾기 버튼에서 사내 계정 문의 절차를
+        안내한다. USER는 라이선스 탐색, MASTER는 관리자 대시보드로 이동한다. 인증 실패는 401과 오류 메시지를 표시한다.
+
+        헤더에 이름·부서·직급/직책과 역할을 표시한다. 로그아웃하면 브라우저 토큰과 사용자 상태를 제거하고 로그인으로 이동한다. 토큰 만료 또는 401 발생 시 재로그인한다. 별도의 로그아웃 API나 Refresh
+        Token은 사용하지 않는다.
+
+
+        요구사항: REQ-FUNC-002, REQ-FUNC-003
+
+        화면: SCR-AUTH-001, SCR-COMMON-001
+
+        테이블: users, departments
+
+        접근: USER / MASTER'
+      x-requirements:
+      - REQ-FUNC-002
+      - REQ-FUNC-003
+      x-screens:
+      - SCR-AUTH-001
+      - SCR-COMMON-001
+      x-tables:
+      - users
+      - departments
+      x-access: USER / MASTER
+    patch:
+      tags:
+      - Auth
+      summary: 회원 정보와 프로필 사진 수정
+      operationId: edit_me_api_auth_me_patch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+            example:
+              name: 윤명진
+              department_id: 2
+              job_title: Backend Developer
+              email: myeongjin@example.com
+              profile_image: null
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+              example:
+                id: 2
+                employee_no: EMP000001
+                name: 윤명진
+                department_id: 2
+                department:
+                  id: 2
+                  name: 개발팀
+                job_title: Backend Developer
+                email: myeongjin@example.com
+                username: myeongjin
+                role: USER
+                profile_image: null
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '409':
+          description: 'DUPLICATE_USER: 가입 정보 또는 이메일이 중복됩니다. / CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                DUPLICATE_USER:
+                  summary: DUPLICATE_USER
+                  value:
+                    code: DUPLICATE_USER
+                    message: 가입 정보 또는 이메일이 중복됩니다.
+                    fields: {}
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '422':
+          description: 'INVALID_DEPARTMENT: 부서를 선택해주세요. / VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_DEPARTMENT:
+                  summary: INVALID_DEPARTMENT
+                  value:
+                    code: INVALID_DEPARTMENT
+                    message: 부서를 선택해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '헤더의 사용자 정보를 선택하면 이름·부서·직급/직책·회사 이메일과 프로필 사진을 수정한다. JPG/PNG/WEBP를 허용하며 별도의 파일 용량 제한은 두지 않는다. 사진을 등록하지 않거나
+        제거하면 공통 기본 프로필 이미지를 표시하고, 등록된 사진은 헤더·승인 대기·사용자 관리에 표시한다. 사번과 아이디는 읽기 전용이며 이메일 중복과 부서 유효성을 서버에서 검사한다.
+
+
+        요구사항: REQ-FUNC-020
+
+        화면: SCR-COMMON-002
+
+        테이블: users, departments
+
+        접근: USER / MASTER'
+      x-requirements:
+      - REQ-FUNC-020
+      x-screens:
+      - SCR-COMMON-002
+      x-tables:
+      - users
+      - departments
+      x-access: USER / MASTER
+  /api/licenses:
+    get:
+      tags:
+      - Licenses
+      summary: 라이선스 검색과 좌석 현황
+      operationId: licenses_api_licenses_get
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 150
+          - type: 'null'
+          title: Q
+        example: GitHub
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 50
+          - type: 'null'
+          title: Category
+        example: 개발
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LicenseOut'
+                title: Response Licenses Api Licenses Get
+              example:
+              - name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: AI 코드 작성 및 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94.0
+                monthly_unit_price: '19.00'
+                request_block: null
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '이름·공급사 검색과 카테고리 필터를 제공한다. 카드에 이름·공급사·플랜·분류·설명·단가/청구 주기·총/사용/잔여 좌석·사용률·활성 상태를 표시한다. 기존 ACTIVE 할당, PENDING
+        신청, INACTIVE 상태는 신청 버튼을 제한한다. 잔여 0석은 신청 가능으로 안내한다.
+
+
+        요구사항: REQ-FUNC-004
+
+        화면: SCR-LIC-001
+
+        테이블: licenses, license_assignments, license_requests
+
+        접근: USER / MASTER
+
+        현재 UI는 전체 목록 로딩 후 검색·분류 필터를 클라이언트에서 적용한다. API q/category도 사용 가능하다.'
+      x-requirements:
+      - REQ-FUNC-004
+      x-screens:
+      - SCR-LIC-001
+      x-tables:
+      - licenses
+      - license_assignments
+      - license_requests
+      x-access: USER / MASTER
+  /api/licenses/{license_id}:
+    get:
+      tags:
+      - Licenses
+      summary: 라이선스 상세
+      operationId: license_detail_api_licenses__license_id__get
+      parameters:
+      - name: license_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: License Id
+        example: 1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseOut'
+              example:
+                name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: AI 코드 작성 및 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94.0
+                monthly_unit_price: '19.00'
+                request_block: null
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '모달에서 SaaS 상세를 확인하고 사용 목적·시작/종료 예정일을 입력한다. 목적은 필수이며 시작일≤종료일이어야 한다. 동일 라이선스의 ACTIVE 할당 또는 PENDING 신청은 409,
+        INACTIVE는 400으로 차단한다. 잔여 0석에서도 PENDING 신청은 생성한다.
+
+
+        요구사항: REQ-FUNC-005
+
+        화면: SCR-LIC-002
+
+        테이블: license_requests, licenses, license_assignments
+
+        접근: USER / MASTER'
+      x-requirements:
+      - REQ-FUNC-005
+      x-screens:
+      - SCR-LIC-002
+      x-tables:
+      - license_requests
+      - licenses
+      - license_assignments
+      x-access: USER / MASTER
+  /api/license-requests:
+    post:
+      tags:
+      - Requests
+      summary: 사용 신청
+      operationId: request_create_api_license_requests_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestInput'
+            example:
+              license_id: 1
+              reason: AI 서비스 개발 프로젝트
+              start_date: '2026-09-08'
+              end_date: '2026-12-31'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: PENDING
+                decision_reason: null
+                processed_by: null
+                processor: null
+                processed_at: null
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '400':
+          description: 'LICENSE_INACTIVE: 비활성 라이선스는 신청 또는 승인할 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                LICENSE_INACTIVE:
+                  summary: LICENSE_INACTIVE
+                  value:
+                    code: LICENSE_INACTIVE
+                    message: 비활성 라이선스는 신청 또는 승인할 수 없습니다.
+                    fields: {}
+        '409':
+          description: 'ALREADY_ASSIGNED: 이미 사용 중인 라이선스입니다. / DUPLICATE_REQUEST: 승인 대기 중인 신청이 있습니다. / CONFLICT: 동시에 변경된 데이터
+            또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                ALREADY_ASSIGNED:
+                  summary: ALREADY_ASSIGNED
+                  value:
+                    code: ALREADY_ASSIGNED
+                    message: 이미 사용 중인 라이선스입니다.
+                    fields: {}
+                DUPLICATE_REQUEST:
+                  summary: DUPLICATE_REQUEST
+                  value:
+                    code: DUPLICATE_REQUEST
+                    message: 승인 대기 중인 신청이 있습니다.
+                    fields: {}
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '모달에서 SaaS 상세를 확인하고 사용 목적·시작/종료 예정일을 입력한다. 목적은 필수이며 시작일≤종료일이어야 한다. 동일 라이선스의 ACTIVE 할당 또는 PENDING 신청은 409,
+        INACTIVE는 400으로 차단한다. 잔여 0석에서도 PENDING 신청은 생성한다.
+
+
+        요구사항: REQ-FUNC-005
+
+        화면: SCR-LIC-002
+
+        테이블: license_requests, licenses, license_assignments
+
+        접근: USER'
+      x-requirements:
+      - REQ-FUNC-005
+      x-screens:
+      - SCR-LIC-002
+      x-tables:
+      - license_requests
+      - licenses
+      - license_assignments
+      x-access: USER
+  /api/license-requests/me:
+    get:
+      tags:
+      - Requests
+      summary: 내 신청과 처리 결과
+      operationId: my_requests_api_license_requests_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/RequestOut'
+                type: array
+                title: Response My Requests Api License Requests Me Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: PENDING
+                decision_reason: null
+                processed_by: null
+                processor: null
+                processed_at: null
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '본인 신청의 SaaS·목적·신청일·예정 기간·상태와 승인/반려 사유·처리자·처리일을 확인한다. 반려 사유는 강조 표시한다. PENDING만 취소 버튼을 제공하고 CANCELED는 취소
+        상태를 표시한다. 화면에서 목록을 10건씩 표시한다.
+
+
+        요구사항: REQ-FUNC-006
+
+        화면: SCR-REQ-001
+
+        테이블: license_requests, users, licenses
+
+        접근: USER'
+      x-requirements:
+      - REQ-FUNC-006
+      x-screens:
+      - SCR-REQ-001
+      x-tables:
+      - license_requests
+      - users
+      - licenses
+      x-access: USER
+  /api/license-requests/{request_id}/cancel:
+    post:
+      tags:
+      - Requests
+      summary: 내 대기 신청 취소
+      operationId: cancel_api_license_requests__request_id__cancel_post
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Request Id
+        example: 1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: CANCELED
+                decision_reason: null
+                processed_by: null
+                processor: null
+                processed_at: null
+                canceled_at: '2026-09-08T09:00:00Z'
+                created_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다. / NOT_OWNER: 본인의 자원만 처리할 수 있습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+                NOT_OWNER:
+                  summary: NOT_OWNER
+                  value:
+                    code: NOT_OWNER
+                    message: 본인의 자원만 처리할 수 있습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '400':
+          description: 'INVALID_TRANSITION: 이미 처리된 신청 또는 종료된 할당입니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_TRANSITION:
+                  summary: INVALID_TRANSITION
+                  value:
+                    code: INVALID_TRANSITION
+                    message: 이미 처리된 신청 또는 종료된 할당입니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '409':
+          description: 'CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '취소 확인 모달을 거쳐 본인의 PENDING 신청만 CANCELED로 변경하고 canceled_at을 저장한다. 타인의 신청은 403, 이미 처리된 신청은 400으로 거부한다. 신청
+        행은 삭제하지 않으며 취소 후 필요하면 새로 신청할 수 있다.
+
+
+        요구사항: REQ-FUNC-007
+
+        화면: SCR-REQ-002
+
+        테이블: license_requests
+
+        접근: USER'
+      x-requirements:
+      - REQ-FUNC-007
+      x-screens:
+      - SCR-REQ-002
+      x-tables:
+      - license_requests
+      x-access: USER
+  /api/license-assignments/me:
+    get:
+      tags:
+      - Assignments
+      summary: 내 활성 라이선스
+      operationId: my_assignments_api_license_assignments_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/AssignmentOut'
+                type: array
+                title: Response My Assignments Api License Assignments Me Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                end_date: '2026-12-31'
+                status: ACTIVE
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: null
+                ended_at: null
+                end_reason: null
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '본인의 ACTIVE 할당만 표시한다. SaaS·공급사·플랜·상태·사용 목적과 권한 승인 시작일/종료일을 확인한다. 목적은 연결된 신청에서 읽으며 연결이 없는 직접 배정은 별도 안내한다.
+
+
+        요구사항: REQ-FUNC-008
+
+        화면: SCR-MYLIC-001
+
+        테이블: license_assignments, licenses, license_requests
+
+        접근: USER'
+      x-requirements:
+      - REQ-FUNC-008
+      x-screens:
+      - SCR-MYLIC-001
+      x-tables:
+      - license_assignments
+      - licenses
+      - license_requests
+      x-access: USER
+  /api/license-assignments/{assignment_id}/return:
+    post:
+      tags:
+      - Assignments
+      summary: 라이선스 직접 반납
+      operationId: return_assignment_api_license_assignments__assignment_id__return_post
+      parameters:
+      - name: assignment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Assignment Id
+        example: 1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                end_date: '2026-12-31'
+                status: RETURNED
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: 2
+                ended_at: '2026-09-08T09:00:00Z'
+                end_reason: 사용자 직접 반납
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다. / NOT_OWNER: 본인의 자원만 처리할 수 있습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+                NOT_OWNER:
+                  summary: NOT_OWNER
+                  value:
+                    code: NOT_OWNER
+                    message: 본인의 자원만 처리할 수 있습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '400':
+          description: 'INVALID_TRANSITION: 이미 처리된 신청 또는 종료된 할당입니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_TRANSITION:
+                  summary: INVALID_TRANSITION
+                  value:
+                    code: INVALID_TRANSITION
+                    message: 이미 처리된 신청 또는 종료된 할당입니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '409':
+          description: 'CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '확인 모달 후 본인의 ACTIVE 할당을 RETURNED로 변경한다. ended_by/ended_at과 “사용자 직접 반납” 사유를 저장한다. 타인 건은 403, 종료된 건은 400으로
+        차단한다. 완료 후 사용 목록을 재조회하고 잔여 좌석 집계에 반영한다.
+
+
+        요구사항: REQ-FUNC-009
+
+        화면: SCR-MYLIC-002
+
+        테이블: license_assignments
+
+        접근: USER'
+      x-requirements:
+      - REQ-FUNC-009
+      x-screens:
+      - SCR-MYLIC-002
+      x-tables:
+      - license_assignments
+      x-access: USER
+  /api/admin/dashboard:
+    get:
+      tags:
+      - Admin
+      summary: 관리자 좌석 및 요청 요약
+      operationId: dashboard_api_admin_dashboard_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOut'
+              example:
+                total_seats: 50
+                used_seats: 47
+                available_seats: 3
+                pending_requests: 1
+                licenses:
+                - name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                high_utilization:
+                - name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                recent_requests:
+                - id: 1
+                  user_id: 2
+                  license_id: 1
+                  user:
+                    id: 2
+                    employee_no: EMP000001
+                    name: 윤명진
+                    department_id: 2
+                    department:
+                      id: 2
+                      name: 개발팀
+                    job_title: Backend Developer
+                    email: myeongjin@example.com
+                    username: myeongjin
+                    role: USER
+                    profile_image: null
+                    created_at: '2026-09-08T09:00:00Z'
+                    updated_at: '2026-09-08T09:00:00Z'
+                  license:
+                    name: GitHub Copilot
+                    vendor: GitHub
+                    plan_name: Business
+                    category: 개발
+                    description: AI 코드 작성 및 리뷰 지원
+                    total_seats: 50
+                    unit_price: '19.00'
+                    billing_cycle: MONTHLY
+                    status: ACTIVE
+                    id: 1
+                    created_at: '2026-09-08T09:00:00Z'
+                    updated_at: '2026-09-08T09:00:00Z'
+                    used_seats: 47
+                    available_seats: 3
+                    utilization: 94.0
+                    monthly_unit_price: '19.00'
+                    request_block: null
+                  reason: AI 서비스 개발 프로젝트
+                  start_date: '2026-09-08'
+                  end_date: '2026-12-31'
+                  status: PENDING
+                  decision_reason: null
+                  processed_by: null
+                  processor: null
+                  processed_at: null
+                  canceled_at: null
+                  created_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '전체·사용 중·잔여 좌석과 승인 대기 수를 표시한다. 라이선스별 사용 현황과 승인 대기 목록은 하단이 맞는 동일 높이 패널에서 각각 스크롤한다. 비활성 라이선스도 전체 좌석 합계에 포함하며
+        실제 ACTIVE 할당으로 사용량을 계산한다.
+
+
+        요구사항: REQ-FUNC-010
+
+        화면: SCR-ADM-001
+
+        테이블: licenses, license_assignments, license_requests, users
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-010
+      x-screens:
+      - SCR-ADM-001
+      x-tables:
+      - licenses
+      - license_assignments
+      - license_requests
+      - users
+      x-access: MASTER
+  /api/admin/license-requests:
+    get:
+      tags:
+      - Admin
+      summary: 승인 대기 신청
+      operationId: pending_api_admin_license_requests_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/RequestOut'
+                type: array
+                title: Response Pending Api Admin License Requests Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: PENDING
+                decision_reason: null
+                processed_by: null
+                processor: null
+                processed_at: null
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '승인 대기 탭에 PENDING만 표시한다. 신청자 이름·부서, SaaS·사용 목적·신청일과 한 줄의 사용 예정 기간, 현재 잔여 좌석을 확인한다. 잔여 0석 또는 비활성이면 승인 버튼을
+        비활성화한다. 승인/반려 후 재조회하여 대기 목록에서 제거한다.
+
+
+        요구사항: REQ-FUNC-011
+
+        화면: SCR-ADM-002
+
+        테이블: license_requests, users, licenses
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-011
+      x-screens:
+      - SCR-ADM-002
+      x-tables:
+      - license_requests
+      - users
+      - licenses
+      x-access: MASTER
+  /api/admin/license-requests/history:
+    get:
+      tags:
+      - Admin
+      summary: 승인 및 반려 처리 이력
+      operationId: history_api_admin_license_requests_history_get
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - APPROVED
+            - REJECTED
+            type: string
+          - type: 'null'
+          title: Status
+        example: APPROVED
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RequestOut'
+                title: Response History Api Admin License Requests History Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: APPROVED
+                decision_reason: 프로젝트 사용 검토 완료
+                processed_by: 1
+                processor:
+                  id: 1
+                  employee_no: EMP000001
+                  name: LiChU. Master
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: master
+                  role: MASTER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                processed_at: '2026-09-08T09:00:00Z'
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '처리 이력 탭에는 APPROVED/REJECTED만 표시하고 전체·승인·반려 필터를 제공한다. 신청자·SaaS·결과·처리자·사유·처리일을 표시한다. CANCELED는 관리자 처리 이력에
+        포함하지 않는다. 목록은 화면에서 10건씩 나누어 표시한다.
+
+
+        요구사항: REQ-FUNC-014
+
+        화면: SCR-ADM-004
+
+        테이블: license_requests, users, licenses
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-014
+      x-screens:
+      - SCR-ADM-004
+      x-tables:
+      - license_requests
+      - users
+      - licenses
+      x-access: MASTER
+  /api/admin/license-requests/{request_id}/approve:
+    post:
+      tags:
+      - Admin
+      summary: 사유와 함께 승인 및 할당
+      operationId: approve_api_admin_license_requests__request_id__approve_post
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Request Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+            example:
+              reason: AI 서비스 개발 프로젝트
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: APPROVED
+                decision_reason: 프로젝트 사용 검토 완료
+                processed_by: 1
+                processor:
+                  id: 1
+                  employee_no: EMP000001
+                  name: LiChU. Master
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: master
+                  role: MASTER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                processed_at: '2026-09-08T09:00:00Z'
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '400':
+          description: 'INVALID_TRANSITION: 이미 처리된 신청 또는 종료된 할당입니다. / LICENSE_INACTIVE: 비활성 라이선스는 신청 또는 승인할 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_TRANSITION:
+                  summary: INVALID_TRANSITION
+                  value:
+                    code: INVALID_TRANSITION
+                    message: 이미 처리된 신청 또는 종료된 할당입니다.
+                    fields: {}
+                LICENSE_INACTIVE:
+                  summary: LICENSE_INACTIVE
+                  value:
+                    code: LICENSE_INACTIVE
+                    message: 비활성 라이선스는 신청 또는 승인할 수 없습니다.
+                    fields: {}
+        '409':
+          description: 'ALREADY_ASSIGNED: 이미 사용 중인 라이선스입니다. / LICENSE_SEAT_FULL: 사용 가능한 라이선스 좌석이 없습니다. / CONFLICT: 동시에 변경된
+            데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                ALREADY_ASSIGNED:
+                  summary: ALREADY_ASSIGNED
+                  value:
+                    code: ALREADY_ASSIGNED
+                    message: 이미 사용 중인 라이선스입니다.
+                    fields: {}
+                LICENSE_SEAT_FULL:
+                  summary: LICENSE_SEAT_FULL
+                  value:
+                    code: LICENSE_SEAT_FULL
+                    message: 사용 가능한 라이선스 좌석이 없습니다.
+                    fields: {}
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '승인 사유는 필수다. PENDING 여부, 라이선스 활성 여부, 기존 ACTIVE 할당 없음, 잔여 좌석>0을 서버에서 확인한다. 동일 트랜잭션에서 APPROVED·사유·처리자·시각을
+        저장하고, 신청 기간을 권한 승인 기간으로 복사한 ACTIVE 할당을 생성한다. 좌석 부족/기존 할당은 409, 재처리는 400이다.
+
+
+        요구사항: REQ-FUNC-012
+
+        화면: SCR-ADM-007
+
+        테이블: license_requests, license_assignments
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-012
+      x-screens:
+      - SCR-ADM-007
+      x-tables:
+      - license_requests
+      - license_assignments
+      x-access: MASTER
+  /api/admin/license-requests/{request_id}/reject:
+    post:
+      tags:
+      - Admin
+      summary: 사유와 함께 반려
+      operationId: reject_api_admin_license_requests__request_id__reject_post
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Request Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+            example:
+              reason: AI 서비스 개발 프로젝트
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                start_date: '2026-09-08'
+                end_date: '2026-12-31'
+                status: REJECTED
+                decision_reason: 프로젝트 사용 검토 완료
+                processed_by: 1
+                processor:
+                  id: 1
+                  employee_no: EMP000001
+                  name: LiChU. Master
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: master
+                  role: MASTER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                processed_at: '2026-09-08T09:00:00Z'
+                canceled_at: null
+                created_at: '2026-09-08T09:00:00Z'
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '400':
+          description: 'INVALID_TRANSITION: 이미 처리된 신청 또는 종료된 할당입니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_TRANSITION:
+                  summary: INVALID_TRANSITION
+                  value:
+                    code: INVALID_TRANSITION
+                    message: 이미 처리된 신청 또는 종료된 할당입니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '409':
+          description: 'CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '반려 사유를 필수 입력하고 PENDING 신청을 REJECTED로 변경한다. decision_reason/processed_by/processed_at을 저장한다. 완료 건은 대기에서
+        제거되어 처리 이력과 신청자의 내 신청에 나타난다. 할당은 생성하지 않으며 재처리는 400으로 거부한다.
+
+
+        요구사항: REQ-FUNC-013
+
+        화면: SCR-ADM-008
+
+        테이블: license_requests
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-013
+      x-screens:
+      - SCR-ADM-008
+      x-tables:
+      - license_requests
+      x-access: MASTER
+  /api/admin/licenses:
+    get:
+      tags:
+      - Admin
+      summary: 관리 대상 라이선스
+      operationId: admin_licenses_api_admin_licenses_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/LicenseOut'
+                type: array
+                title: Response Admin Licenses Api Admin Licenses Get
+              example:
+              - name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: AI 코드 작성 및 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94.0
+                monthly_unit_price: '19.00'
+                request_block: null
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '등록된 라이선스의 이름·공급사·플랜·분류·총/사용/잔여 좌석·사용률·단가·청구 주기·상태를 카드로 표시한다. 연간 단가는 월 환산액도 표시한다. 검색·분류 필터, 등록·수정 버튼과 카드
+        클릭을 통한 현재 사용자 관리를 제공한다.
+
+
+        요구사항: REQ-FUNC-015
+
+        화면: SCR-ADM-003
+
+        테이블: licenses, license_assignments
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-015
+      x-screens:
+      - SCR-ADM-003
+      x-tables:
+      - licenses
+      - license_assignments
+      x-access: MASTER
+    post:
+      tags:
+      - Admin
+      summary: 라이선스 등록
+      operationId: create_license_api_admin_licenses_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LicenseInput'
+            example:
+              name: 윤명진
+              vendor: GitHub
+              plan_name: Business
+              category: 개발
+              description: AI 코드 작성 및 리뷰 지원
+              total_seats: 50
+              unit_price: '19.00'
+              billing_cycle: MONTHLY
+              status: ACTIVE
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseOut'
+              example:
+                name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: AI 코드 작성 및 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94.0
+                monthly_unit_price: '19.00'
+                request_block: null
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '409':
+          description: 'CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '이름·공급사·플랜·분류·설명·총 좌석·사용자당 단가(USD)·청구 주기(MONTHLY/YEARLY)·상태(ACTIVE/INACTIVE)를 입력하여 등록한다. 총 좌석과 단가는 0 이상이어야
+        한다. 저장 후 관리 목록을 재조회한다.
+
+
+        요구사항: REQ-FUNC-016
+
+        화면: SCR-ADM-005
+
+        테이블: licenses
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-016
+      x-screens:
+      - SCR-ADM-005
+      x-tables:
+      - licenses
+      x-access: MASTER
+  /api/admin/licenses/{license_id}:
+    patch:
+      tags:
+      - Admin
+      summary: 라이선스 부분 수정
+      operationId: edit_license_api_admin_licenses__license_id__patch
+      parameters:
+      - name: license_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: License Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LicensePatch'
+            example:
+              name: 윤명진
+              vendor: GitHub
+              plan_name: Business
+              category: 개발
+              description: AI 코드 작성 및 리뷰 지원
+              total_seats: 50
+              unit_price: '19.00'
+              billing_cycle: MONTHLY
+              status: ACTIVE
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseOut'
+              example:
+                name: GitHub Copilot
+                vendor: GitHub
+                plan_name: Business
+                category: 개발
+                description: AI 코드 작성 및 리뷰 지원
+                total_seats: 50
+                unit_price: '19.00'
+                billing_cycle: MONTHLY
+                status: ACTIVE
+                id: 1
+                created_at: '2026-09-08T09:00:00Z'
+                updated_at: '2026-09-08T09:00:00Z'
+                used_seats: 47
+                available_seats: 3
+                utilization: 94.0
+                monthly_unit_price: '19.00'
+                request_block: null
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '409':
+          description: 'SEATS_BELOW_USAGE: 현재 사용 중인 좌석 수보다 작게 설정할 수 없습니다. / CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                SEATS_BELOW_USAGE:
+                  summary: SEATS_BELOW_USAGE
+                  value:
+                    code: SEATS_BELOW_USAGE
+                    message: 현재 사용 중인 좌석 수보다 작게 설정할 수 없습니다.
+                    fields: {}
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '기존 정보를 수정한다. 총 좌석을 현재 ACTIVE 할당 수 미만으로 줄이면 409로 거부한다. 삭제 대신 INACTIVE로 설정하며 기존 신청·할당 이력을 유지한다. 비활성 상태는
+        새 신청·승인을 막지만 기존 할당을 자동 종료하지 않는다.
+
+
+        요구사항: REQ-FUNC-017
+
+        화면: SCR-ADM-005
+
+        테이블: licenses, license_assignments
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-017
+      x-screens:
+      - SCR-ADM-005
+      x-tables:
+      - licenses
+      - license_assignments
+      x-access: MASTER
+  /api/admin/licenses/{license_id}/assignments:
+    get:
+      tags:
+      - Admin
+      summary: 현재 사용자 인사정보 및 할당
+      operationId: license_users_api_admin_licenses__license_id__assignments_get
+      parameters:
+      - name: license_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: License Id
+        example: 1
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssignmentOut'
+                title: Response License Users Api Admin Licenses  License Id  Assignments Get
+              example:
+              - id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                end_date: '2026-12-31'
+                status: ACTIVE
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: null
+                ended_at: null
+                end_reason: null
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '라이선스 카드를 클릭하면 해당 라이선스의 ACTIVE 사용자 목록을 모달로 연다. 이름·부서·직급/직책·이메일·권한 승인 기간과 수정·회수 버튼을 표시한다. 이름·부서·직급·이메일 통합
+        검색을 제공하고 사용자가 없거나 검색 결과가 없으면 각각 빈 상태를 안내한다.
+
+
+        요구사항: REQ-FUNC-018
+
+        화면: SCR-ADM-006
+
+        테이블: license_assignments, users, departments
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-018
+      x-screens:
+      - SCR-ADM-006
+      x-tables:
+      - license_assignments
+      - users
+      - departments
+      x-access: MASTER
+  /api/admin/license-assignments/{assignment_id}/revoke:
+    post:
+      tags:
+      - Admin
+      summary: 사유와 함께 관리자 회수
+      operationId: revoke_api_admin_license_assignments__assignment_id__revoke_post
+      parameters:
+      - name: assignment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Assignment Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+            example:
+              reason: AI 서비스 개발 프로젝트
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                end_date: '2026-12-31'
+                status: REVOKED
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: 1
+                ended_at: '2026-09-08T09:00:00Z'
+                end_reason: 프로젝트 종료
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '400':
+          description: 'INVALID_TRANSITION: 이미 처리된 신청 또는 종료된 할당입니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_TRANSITION:
+                  summary: INVALID_TRANSITION
+                  value:
+                    code: INVALID_TRANSITION
+                    message: 이미 처리된 신청 또는 종료된 할당입니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '409':
+          description: 'CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '사용자·SaaS·권한 승인 기간을 확인하고 회수 사유를 필수 입력한다. ACTIVE만 REVOKED로 변경하고 ended_by/ended_at/end_reason을 저장한다. 종료된
+        건은 400이다. 완료 후 현재 사용자/내 라이선스에서 제외되고 잔여 좌석이 증가한다. 할당 행은 보존한다.
+
+
+        요구사항: REQ-FUNC-019
+
+        화면: SCR-ADM-009
+
+        테이블: license_assignments
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-019
+      x-screens:
+      - SCR-ADM-009
+      x-tables:
+      - license_assignments
+      x-access: MASTER
+  /api/admin/license-assignments/{assignment_id}:
+    patch:
+      tags:
+      - Admin
+      summary: 권한 승인 기간 수정
+      operationId: edit_assignment_period_api_admin_license_assignments__assignment_id__patch
+      parameters:
+      - name: assignment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          title: Assignment Id
+        example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentPeriod'
+            example:
+              valid_from: '2026-09-08'
+              valid_until: '2026-12-31'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentOut'
+              example:
+                id: 1
+                user_id: 2
+                license_id: 1
+                request_id: 1
+                user:
+                  id: 2
+                  employee_no: EMP000001
+                  name: 윤명진
+                  department_id: 2
+                  department:
+                    id: 2
+                    name: 개발팀
+                  job_title: Backend Developer
+                  email: myeongjin@example.com
+                  username: myeongjin
+                  role: USER
+                  profile_image: null
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                license:
+                  name: GitHub Copilot
+                  vendor: GitHub
+                  plan_name: Business
+                  category: 개발
+                  description: AI 코드 작성 및 리뷰 지원
+                  total_seats: 50
+                  unit_price: '19.00'
+                  billing_cycle: MONTHLY
+                  status: ACTIVE
+                  id: 1
+                  created_at: '2026-09-08T09:00:00Z'
+                  updated_at: '2026-09-08T09:00:00Z'
+                  used_seats: 47
+                  available_seats: 3
+                  utilization: 94.0
+                  monthly_unit_price: '19.00'
+                  request_block: null
+                reason: AI 서비스 개발 프로젝트
+                end_date: '2026-12-31'
+                status: ACTIVE
+                assigned_by: 1
+                assigned_at: '2026-09-08T09:00:00Z'
+                valid_from: '2026-09-08'
+                valid_until: '2026-12-31'
+                ended_by: null
+                ended_at: null
+                end_reason: null
+        '401':
+          description: 'UNAUTHORIZED: 로그인이 필요합니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                UNAUTHORIZED:
+                  summary: UNAUTHORIZED
+                  value:
+                    code: UNAUTHORIZED
+                    message: 로그인이 필요합니다.
+                    fields: {}
+        '403':
+          description: 'FORBIDDEN: 권한이 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                FORBIDDEN:
+                  summary: FORBIDDEN
+                  value:
+                    code: FORBIDDEN
+                    message: 권한이 없습니다.
+                    fields: {}
+        '404':
+          description: 'NOT_FOUND: 해당 데이터를 찾을 수 없습니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                NOT_FOUND:
+                  summary: NOT_FOUND
+                  value:
+                    code: NOT_FOUND
+                    message: 해당 데이터를 찾을 수 없습니다.
+                    fields: {}
+        '400':
+          description: 'INVALID_TRANSITION: 이미 처리된 신청 또는 종료된 할당입니다.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INVALID_TRANSITION:
+                  summary: INVALID_TRANSITION
+                  value:
+                    code: INVALID_TRANSITION
+                    message: 이미 처리된 신청 또는 종료된 할당입니다.
+                    fields: {}
+        '422':
+          description: 'VALIDATION_ERROR: 입력값을 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                VALIDATION_ERROR:
+                  summary: VALIDATION_ERROR
+                  value:
+                    code: VALIDATION_ERROR
+                    message: 입력값을 확인해주세요.
+                    fields:
+                      _form: 필수값·형식·기간을 확인해주세요.
+        '409':
+          description: 'CONFLICT: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                CONFLICT:
+                  summary: CONFLICT
+                  value:
+                    code: CONFLICT
+                    message: 동시에 변경된 데이터 또는 중복 정보가 있습니다. 새로고침 후 확인해주세요.
+                    fields: {}
+        '500':
+          description: 'INTERNAL_ERROR: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+              examples:
+                INTERNAL_ERROR:
+                  summary: INTERNAL_ERROR
+                  value:
+                    code: INTERNAL_ERROR
+                    message: 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+                    fields: {}
+      description: '라이선스 사용자 관리에서 수정 버튼을 선택하여 ACTIVE 할당의 권한 승인 시작일과 종료일을 변경한다. 시작일≤종료일을 클라이언트와 서버에서 검증하고 종료된 할당은 400으로 거부한다.
+        완료 후 사용자 목록을 재조회하여 변경 기간을 표시한다.
+
+
+        요구사항: REQ-FUNC-021
+
+        화면: SCR-ADM-010
+
+        테이블: license_assignments
+
+        접근: MASTER'
+      x-requirements:
+      - REQ-FUNC-021
+      x-screens:
+      - SCR-ADM-010
+      x-tables:
+      - license_assignments
+      x-access: MASTER
+components:
+  schemas:
+    AssignmentOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: 고유 식별자
+        user_id:
+          type: integer
+          title: User Id
+          description: 대상 직원 users.id
+        license_id:
+          type: integer
+          title: License Id
+          description: 대상 라이선스 licenses.id
+        request_id:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Request Id
+          description: 원본 신청 license_requests.id. UNIQUE, 직접 배정 이력은 null 가능
+        user:
+          $ref: '#/components/schemas/UserOut'
+          description: 직원 정보(UserOut)
+        license:
+          $ref: '#/components/schemas/LicenseOut'
+          description: 라이선스 정보 및 현재 좌석 집계(LicenseOut)
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+          description: 사용 목적 또는 처리 사유. 입력은 공백 제거 후 1~4000자
+        end_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: End Date
+          description: 사용 종료 예정일. AssignmentOut에서는 원본 신청의 종료일
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - RETURNED
+          - REVOKED
+          title: Status
+          description: 업무 상태. 허용값 및 전이 규칙 참조
+        assigned_by:
+          type: integer
+          title: Assigned By
+          description: 할당 처리자 users.id
+        assigned_at:
+          type: string
+          format: date-time
+          title: Assigned At
+          description: 할당 시각(UTC)
+        valid_from:
+          type: string
+          format: date
+          title: Valid From
+          description: 권한 승인 시작일. 승인 시 신청 시작일 복사
+        valid_until:
+          type: string
+          format: date
+          title: Valid Until
+          description: 권한 승인 종료일. 자동 회수 트리거 아님
+        ended_by:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Ended By
+          description: 반납 / 회수 수행자 users.id
+        ended_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ended At
+          description: 반납 / 회수 시각(UTC)
+        end_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: End Reason
+          description: 종료 사유. 직접 반납은 사용자 직접 반납
+      type: object
+      required:
+      - id
+      - user_id
+      - license_id
+      - request_id
+      - user
+      - license
+      - reason
+      - end_date
+      - status
+      - assigned_by
+      - assigned_at
+      - valid_from
+      - valid_until
+      - ended_by
+      - ended_at
+      - end_reason
+      title: AssignmentOut
+    AssignmentPeriod:
+      properties:
+        valid_from:
+          type: string
+          format: date
+          title: Valid From
+          description: 권한 승인 시작일. 승인 시 신청 시작일 복사
+        valid_until:
+          type: string
+          format: date
+          title: Valid Until
+          description: 권한 승인 종료일. 자동 회수 트리거 아님
+      additionalProperties: false
+      type: object
+      required:
+      - valid_from
+      - valid_until
+      title: AssignmentPeriod
+      description: 시작일은 종료일 이하. 역전된 기간은 422.
+    DashboardOut:
+      properties:
+        total_seats:
+          type: integer
+          title: Total Seats
+          description: 전체 좌석 수. 현재 ACTIVE 사용량 미만으로 축소 불가
+        used_seats:
+          type: integer
+          title: Used Seats
+          description: ACTIVE 할당 COUNT. 저장 컬럼 아님
+        available_seats:
+          type: integer
+          title: Available Seats
+          description: total_seats - used_seats. 저장 컬럼 아님
+        pending_requests:
+          type: integer
+          title: Pending Requests
+          description: 전체 PENDING 신청 수
+        licenses:
+          items:
+            $ref: '#/components/schemas/LicenseOut'
+          type: array
+          title: Licenses
+          description: 라이선스별 현황 배열
+        high_utilization:
+          items:
+            $ref: '#/components/schemas/LicenseOut'
+          type: array
+          title: High Utilization
+          description: 사용률 90% 이상 라이선스. 사용률 내림차순
+        recent_requests:
+          items:
+            $ref: '#/components/schemas/RequestOut'
+          type: array
+          title: Recent Requests
+          description: 최근 PENDING 신청 최대 5건
+      type: object
+      required:
+      - total_seats
+      - used_seats
+      - available_seats
+      - pending_requests
+      - licenses
+      - high_utilization
+      - recent_requests
+      title: DashboardOut
+    DepartmentOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: 고유 식별자
+        name:
+          type: string
+          title: Name
+          description: 이름 / 명칭
+      type: object
+      required:
+      - id
+      - name
+      title: DepartmentOut
+    ErrorOut:
+      properties:
+        code:
+          type: string
+          title: Code
+          description: 기계 판독 오류 코드
+        message:
+          type: string
+          title: Message
+          description: 사용자용 오류 메시지
+        fields:
+          additionalProperties:
+            type: string
+          type: object
+          title: Fields
+          description: 필드별 오류 메시지 사전. 없으면 빈 객체
+      type: object
+      required:
+      - code
+      - message
+      title: ErrorOut
+    LicenseInput:
+      properties:
+        name:
+          type: string
+          maxLength: 150
+          minLength: 1
+          title: Name
+          description: 이름 / 명칭
+        vendor:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Vendor
+          description: 공급사
+        plan_name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Plan Name
+          description: 구독 플랜
+        category:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Category
+          description: 분류(개발 / 디자인 / 생산성 등)
+        description:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Description
+          description: 라이선스 설명
+        total_seats:
+          type: integer
+          maximum: 1000000.0
+          minimum: 0.0
+          title: Total Seats
+          description: 전체 좌석 수. 현재 ACTIVE 사용량 미만으로 축소 불가
+        unit_price:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,10}|(?=[\d.]{1,13}0*$)\d{0,10}\.\d{0,2}0*$)
+          title: Unit Price
+          description: 사용자당 USD 단가. 소수 둘째 자리까지, 총 12자리
+        billing_cycle:
+          type: string
+          enum:
+          - MONTHLY
+          - YEARLY
+          title: Billing Cycle
+          description: MONTHLY(월간) / YEARLY(연간)
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+          title: Status
+          description: 업무 상태. 허용값 및 전이 규칙 참조
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - vendor
+      - plan_name
+      - category
+      - description
+      - total_seats
+      - unit_price
+      - billing_cycle
+      - status
+      title: LicenseInput
+    LicenseOut:
+      properties:
+        name:
+          type: string
+          maxLength: 150
+          minLength: 1
+          title: Name
+          description: 이름 / 명칭
+        vendor:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Vendor
+          description: 공급사
+        plan_name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Plan Name
+          description: 구독 플랜
+        category:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Category
+          description: 분류(개발 / 디자인 / 생산성 등)
+        description:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Description
+          description: 라이선스 설명
+        total_seats:
+          type: integer
+          maximum: 1000000.0
+          minimum: 0.0
+          title: Total Seats
+          description: 전체 좌석 수. 현재 ACTIVE 사용량 미만으로 축소 불가
+        unit_price:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,10}|(?=[\d.]{1,13}0*$)\d{0,10}\.\d{0,2}0*$)
+          title: Unit Price
+          description: 사용자당 USD 단가. 소수 둘째 자리까지, 총 12자리
+        billing_cycle:
+          type: string
+          enum:
+          - MONTHLY
+          - YEARLY
+          title: Billing Cycle
+          description: MONTHLY(월간) / YEARLY(연간)
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+          title: Status
+          description: 업무 상태. 허용값 및 전이 규칙 참조
+        id:
+          type: integer
+          title: Id
+          description: 고유 식별자
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 생성 시각(UTC)
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+          description: 최종 수정 시각(UTC)
+        used_seats:
+          type: integer
+          title: Used Seats
+          description: ACTIVE 할당 COUNT. 저장 컬럼 아님
+        available_seats:
+          type: integer
+          title: Available Seats
+          description: total_seats - used_seats. 저장 컬럼 아님
+        utilization:
+          type: number
+          title: Utilization
+          description: used_seats / total_seats × 100, 소수 첫째 자리. 0석이면 0
+        monthly_unit_price:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Monthly Unit Price
+          description: 연간 단가는 12로 나눈 월 환산 금액(소수 둘째 자리)
+        request_block:
+          anyOf:
+          - type: string
+            enum:
+            - ACTIVE_ASSIGNMENT
+            - PENDING_REQUEST
+            - INACTIVE
+          - type: 'null'
+          title: Request Block
+          description: 기존 할당 / 대기 신청 / 비활성 상태만 차단. 잔여 0석 자체는 차단 사유 아님
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - vendor
+      - plan_name
+      - category
+      - description
+      - total_seats
+      - unit_price
+      - billing_cycle
+      - status
+      - id
+      - created_at
+      - updated_at
+      - used_seats
+      - available_seats
+      - utilization
+      - monthly_unit_price
+      - request_block
+      title: LicenseOut
+    LicensePatch:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 150
+            minLength: 1
+          - type: 'null'
+          title: Name
+          description: 이름 / 명칭
+        vendor:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 1
+          - type: 'null'
+          title: Vendor
+          description: 공급사
+        plan_name:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 1
+          - type: 'null'
+          title: Plan Name
+          description: 구독 플랜
+        category:
+          anyOf:
+          - type: string
+            maxLength: 50
+            minLength: 1
+          - type: 'null'
+          title: Category
+          description: 분류(개발 / 디자인 / 생산성 등)
+        description:
+          anyOf:
+          - type: string
+            maxLength: 4000
+            minLength: 1
+          - type: 'null'
+          title: Description
+          description: 라이선스 설명
+        total_seats:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Total Seats
+          description: 전체 좌석 수. 현재 ACTIVE 사용량 미만으로 축소 불가
+        unit_price:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*(?:\d{0,10}|(?=[\d.]{1,13}0*$)\d{0,10}\.\d{0,2}0*$)
+          - type: 'null'
+          title: Unit Price
+          description: 사용자당 USD 단가. 소수 둘째 자리까지, 총 12자리
+        billing_cycle:
+          anyOf:
+          - type: string
+            enum:
+            - MONTHLY
+            - YEARLY
+          - type: 'null'
+          title: Billing Cycle
+          description: MONTHLY(월간) / YEARLY(연간)
+        status:
+          anyOf:
+          - type: string
+            enum:
+            - ACTIVE
+            - INACTIVE
+          - type: 'null'
+          title: Status
+          description: 업무 상태. 허용값 및 전이 규칙 참조
+      additionalProperties: false
+      type: object
+      title: LicensePatch
+      description: 최소 한 필드 필요. 명시적 null은 모두 422. 생략한 필드는 유지.
+    Login:
+      properties:
+        username:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Username
+          description: 로그인 아이디. 중복 불가
+        password:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Password
+          description: 비밀번호. 가입 시 8자 이상 및 UTF-8 72바이트 이하
+      additionalProperties: false
+      type: object
+      required:
+      - username
+      - password
+      title: Login
+    ProfileUpdate:
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Name
+          description: 이름 / 명칭
+        department_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Department Id
+          description: 소속 부서 ID
+        job_title:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Job Title
+          description: 직급 / 직책
+        email:
+          type: string
+          maxLength: 255
+          format: email
+          title: Email
+          description: 회사 이메일. 소문자 정규화, 중복 불가
+        profile_image:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Profile Image
+          description: 선택 프로필 Data URL (JPEG/PNG/WEBP). null은 기본 프로필. 별도 용량 제한 없음
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - department_id
+      - job_title
+      - email
+      title: ProfileUpdate
+    Reason:
+      properties:
+        reason:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Reason
+          description: 사용 목적 또는 처리 사유. 입력은 공백 제거 후 1~4000자
+      additionalProperties: false
+      type: object
+      required:
+      - reason
+      title: Reason
+    RequestInput:
+      properties:
+        license_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: License Id
+          description: 대상 라이선스 licenses.id
+        reason:
+          type: string
+          maxLength: 4000
+          minLength: 1
+          title: Reason
+          description: 사용 목적 또는 처리 사유. 입력은 공백 제거 후 1~4000자
+        start_date:
+          type: string
+          format: date
+          title: Start Date
+          description: 사용 시작 예정일
+        end_date:
+          type: string
+          format: date
+          title: End Date
+          description: 사용 종료 예정일. AssignmentOut에서는 원본 신청의 종료일
+      additionalProperties: false
+      type: object
+      required:
+      - license_id
+      - reason
+      - start_date
+      - end_date
+      title: RequestInput
+      description: 시작일은 종료일 이하. 역전된 기간은 422.
+    RequestOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: 고유 식별자
+        user_id:
+          type: integer
+          title: User Id
+          description: 대상 직원 users.id
+        license_id:
+          type: integer
+          title: License Id
+          description: 대상 라이선스 licenses.id
+        user:
+          $ref: '#/components/schemas/UserOut'
+          description: 직원 정보(UserOut)
+        license:
+          $ref: '#/components/schemas/LicenseOut'
+          description: 라이선스 정보 및 현재 좌석 집계(LicenseOut)
+        reason:
+          type: string
+          title: Reason
+          description: 사용 목적 또는 처리 사유. 입력은 공백 제거 후 1~4000자
+        start_date:
+          type: string
+          format: date
+          title: Start Date
+          description: 사용 시작 예정일
+        end_date:
+          type: string
+          format: date
+          title: End Date
+          description: 사용 종료 예정일. AssignmentOut에서는 원본 신청의 종료일
+        status:
+          type: string
+          enum:
+          - PENDING
+          - APPROVED
+          - REJECTED
+          - CANCELED
+          title: Status
+          description: 업무 상태. 허용값 및 전이 규칙 참조
+        decision_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Decision Reason
+          description: 승인 / 반려 사유. 처리 전 null
+        processed_by:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Processed By
+          description: 처리자 users.id. 처리 전 null
+        processor:
+          anyOf:
+          - $ref: '#/components/schemas/UserOut'
+          - type: 'null'
+          description: 처리자 정보(UserOut), 처리 전 null
+        processed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Processed At
+          description: 승인 / 반려 처리 시각(UTC)
+        canceled_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Canceled At
+          description: 사용자 취소 시각(UTC)
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 생성 시각(UTC)
+      type: object
+      required:
+      - id
+      - user_id
+      - license_id
+      - user
+      - license
+      - reason
+      - start_date
+      - end_date
+      - status
+      - decision_reason
+      - processed_by
+      - processor
+      - processed_at
+      - canceled_at
+      - created_at
+      title: RequestOut
+    Signup:
+      properties:
+        employee_no:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Employee No
+          description: 사번. 중복 불가
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Name
+          description: 이름 / 명칭
+        department_id:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Department Id
+          description: 소속 부서 ID
+        job_title:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Job Title
+          description: 직급 / 직책
+        email:
+          type: string
+          maxLength: 255
+          format: email
+          title: Email
+          description: 회사 이메일. 소문자 정규화, 중복 불가
+        username:
+          type: string
+          maxLength: 100
+          minLength: 4
+          title: Username
+          description: 로그인 아이디. 중복 불가
+        password:
+          type: string
+          maxLength: 72
+          minLength: 8
+          title: Password
+          description: 비밀번호. 가입 시 8자 이상 및 UTF-8 72바이트 이하
+        password_confirm:
+          type: string
+          title: Password Confirm
+          description: 비밀번호 확인. password와 일치
+        profile_image:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Profile Image
+          description: 선택 프로필 Data URL (JPEG/PNG/WEBP). null은 기본 프로필. 별도 용량 제한 없음
+      additionalProperties: false
+      type: object
+      required:
+      - employee_no
+      - name
+      - department_id
+      - job_title
+      - email
+      - username
+      - password
+      - password_confirm
+      title: Signup
+      description: 비밀번호 일치 및 UTF-8 72바이트 이하를 추가 검증. 가입 역할은 USER 고정.
+    TokenOut:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+          description: JWT Access Token (실제 토큰 대신 명세 예시 문자열)
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+          description: bearer
+      type: object
+      required:
+      - access_token
+      title: TokenOut
+    UserOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+          description: 고유 식별자
+        employee_no:
+          type: string
+          title: Employee No
+          description: 사번. 중복 불가
+        name:
+          type: string
+          title: Name
+          description: 이름 / 명칭
+        department_id:
+          type: integer
+          title: Department Id
+          description: 소속 부서 ID
+        department:
+          $ref: '#/components/schemas/DepartmentOut'
+          description: 소속 부서 상세
+        job_title:
+          type: string
+          title: Job Title
+          description: 직급 / 직책
+        email:
+          type: string
+          title: Email
+          description: 회사 이메일. 소문자 정규화, 중복 불가
+        username:
+          type: string
+          title: Username
+          description: 로그인 아이디. 중복 불가
+        role:
+          type: string
+          enum:
+          - USER
+          - MASTER
+          title: Role
+          description: USER(임직원) / MASTER(관리자). 가입 시 USER 고정
+        profile_image:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Profile Image
+          description: 선택 프로필 Data URL (JPEG/PNG/WEBP). null은 기본 프로필. 별도 용량 제한 없음
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: 생성 시각(UTC)
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+          description: 최종 수정 시각(UTC)
+      type: object
+      required:
+      - id
+      - employee_no
+      - name
+      - department_id
+      - department
+      - job_title
+      - email
+      - username
+      - role
+      - profile_image
+      - created_at
+      - updated_at
+      title: UserOut
+servers:
+- url: http://127.0.0.1:8000
+  description: 기본 로컬 실행 주소 (API Path에 /api 포함)

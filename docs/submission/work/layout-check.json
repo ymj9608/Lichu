@@ -1,0 +1,809 @@
+[
+  {
+    "name": "화면설계서",
+    "pages": [
+      {
+        "page": 1,
+        "title": "LiChU. 화면설계서",
+        "bottom": 912,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 2,
+        "title": "전체 사용자 흐름",
+        "bottom": 903,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 3,
+        "title": "회원가입",
+        "bottom": 1025,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 4,
+        "title": "회원가입 · 상세 동작",
+        "bottom": 988,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 5,
+        "title": "로그인",
+        "bottom": 1025,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 6,
+        "title": "로그인 · 상세 동작",
+        "bottom": 1013,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 7,
+        "title": "공통 헤더·사이드바",
+        "bottom": 1025,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 8,
+        "title": "공통 헤더·사이드바 · 상세 동작",
+        "bottom": 958,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 9,
+        "title": "회원 정보 수정 모달",
+        "bottom": 1025,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 10,
+        "title": "회원 정보 수정 모달 · 상세 동작",
+        "bottom": 944,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 11,
+        "title": "라이선스 탐색",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 12,
+        "title": "라이선스 탐색 · 상세 동작",
+        "bottom": 988,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 13,
+        "title": "사용 신청 모달",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 14,
+        "title": "사용 신청 모달 · 상세 동작",
+        "bottom": 1013,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 15,
+        "title": "내 신청",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 16,
+        "title": "내 신청 · 상세 동작",
+        "bottom": 929,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 17,
+        "title": "신청 취소 확인",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 18,
+        "title": "신청 취소 확인 · 상세 동작",
+        "bottom": 904,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 19,
+        "title": "내 라이선스",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 20,
+        "title": "내 라이선스 · 상세 동작",
+        "bottom": 929,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 21,
+        "title": "반납 확인",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 22,
+        "title": "반납 확인 · 상세 동작",
+        "bottom": 875,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 23,
+        "title": "대시보드",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 24,
+        "title": "대시보드 · 상세 동작",
+        "bottom": 904,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 25,
+        "title": "승인 대기",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 26,
+        "title": "승인 대기 · 상세 동작",
+        "bottom": 944,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 27,
+        "title": "승인 모달",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 28,
+        "title": "승인 모달 · 상세 동작",
+        "bottom": 905,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 29,
+        "title": "반려 모달",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 30,
+        "title": "반려 모달 · 상세 동작",
+        "bottom": 889,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 31,
+        "title": "처리 이력",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 32,
+        "title": "처리 이력 · 상세 동작",
+        "bottom": 958,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 33,
+        "title": "라이선스 관리",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 34,
+        "title": "라이선스 관리 · 상세 동작",
+        "bottom": 929,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 35,
+        "title": "등록 모달",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 36,
+        "title": "라이선스 등록 · 초기 상태",
+        "bottom": 958,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 37,
+        "title": "등록 모달 · 상세 동작",
+        "bottom": 949,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 38,
+        "title": "라이선스 사용자 관리 모달",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 39,
+        "title": "라이선스 사용자 관리 모달 · 상세 동작",
+        "bottom": 945,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 40,
+        "title": "권한 승인 기간 수정 모달",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 41,
+        "title": "권한 승인 기간 수정 모달 · 상세 동작",
+        "bottom": 915,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 42,
+        "title": "회수 모달",
+        "bottom": 1009,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 43,
+        "title": "회수 모달 · 상세 동작",
+        "bottom": 944,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 44,
+        "title": "공통 상태 및 예외 정책",
+        "bottom": 831,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 45,
+        "title": "추적성 · 화면 ↔ 요구사항 ↔ API ↔ DB",
+        "bottom": 855,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 46,
+        "title": "추적성 · 화면 ↔ 요구사항 ↔ API ↔ DB",
+        "bottom": 903,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 47,
+        "title": "추적성 · 화면 ↔ 요구사항 ↔ API ↔ DB",
+        "bottom": 248,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      }
+    ]
+  },
+  {
+    "name": "API",
+    "pages": [
+      {
+        "page": 1,
+        "title": "API 명세",
+        "bottom": 848,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 2,
+        "title": "API 목록 요약",
+        "bottom": 821,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 3,
+        "title": "API 목록 요약",
+        "bottom": 825,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 4,
+        "title": "회원가입 부서 목록",
+        "bottom": 626,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 5,
+        "title": "직원 회원가입",
+        "bottom": 1011,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 6,
+        "title": "아이디와 비밀번호 로그인",
+        "bottom": 730,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 7,
+        "title": "현재 로그인 사용자",
+        "bottom": 621,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 8,
+        "title": "회원 정보와 프로필 사진 수정",
+        "bottom": 887,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 9,
+        "title": "라이선스 검색과 좌석 현황",
+        "bottom": 714,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 10,
+        "title": "라이선스 상세",
+        "bottom": 683,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 11,
+        "title": "사용 신청",
+        "bottom": 967,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 12,
+        "title": "내 신청과 처리 결과",
+        "bottom": 617,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 13,
+        "title": "내 대기 신청 취소",
+        "bottom": 858,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 14,
+        "title": "내 활성 라이선스",
+        "bottom": 617,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 15,
+        "title": "라이선스 직접 반납",
+        "bottom": 812,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 16,
+        "title": "관리자 좌석 및 요청 요약",
+        "bottom": 617,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 17,
+        "title": "승인 대기 신청",
+        "bottom": 617,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 18,
+        "title": "승인 및 반려 처리 이력",
+        "bottom": 698,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 19,
+        "title": "사유와 함께 승인 및 할당",
+        "bottom": 974,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 20,
+        "title": "사유와 함께 반려",
+        "bottom": 897,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 21,
+        "title": "관리 대상 라이선스",
+        "bottom": 645,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 22,
+        "title": "라이선스 등록",
+        "bottom": 979,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 23,
+        "title": "라이선스 부분 수정",
+        "bottom": 1070,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 24,
+        "title": "현재 사용자 인사정보 및 할당",
+        "bottom": 711,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 25,
+        "title": "사유와 함께 관리자 회수",
+        "bottom": 851,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 26,
+        "title": "권한 승인 기간 수정",
+        "bottom": 889,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 27,
+        "title": "공통 스키마 · AssignmentOut",
+        "bottom": 791,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 28,
+        "title": "공통 스키마 · AssignmentPeriod",
+        "bottom": 299,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 29,
+        "title": "공통 스키마 · DashboardOut",
+        "bottom": 488,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 30,
+        "title": "공통 스키마 · DepartmentOut",
+        "bottom": 299,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 31,
+        "title": "공통 스키마 · ErrorOut",
+        "bottom": 327,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 32,
+        "title": "공통 스키마 · LicenseInput",
+        "bottom": 545,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 33,
+        "title": "공통 스키마 · LicenseOut",
+        "bottom": 835,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 34,
+        "title": "공통 스키마 · LicensePatch",
+        "bottom": 497,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 35,
+        "title": "공통 스키마 · Login",
+        "bottom": 315,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 36,
+        "title": "공통 스키마 · ProfileUpdate",
+        "bottom": 400,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 37,
+        "title": "공통 스키마 · Reason",
+        "bottom": 287,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 38,
+        "title": "공통 스키마 · RequestInput",
+        "bottom": 387,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 39,
+        "title": "공통 스키마 · RequestOut",
+        "bottom": 746,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 40,
+        "title": "공통 스키마 · Signup",
+        "bottom": 529,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 41,
+        "title": "공통 스키마 · TokenOut",
+        "bottom": 299,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 42,
+        "title": "공통 스키마 · UserOut",
+        "bottom": 661,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 43,
+        "title": "공통 오류 및 호출 정책",
+        "bottom": 857,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 44,
+        "title": "Swagger 렌더링",
+        "bottom": 934,
+        "limit": 1073,
+        "overflow": 0,
+        "horizontal": []
+      }
+    ]
+  },
+  {
+    "name": "DB",
+    "pages": [
+      {
+        "page": 1,
+        "title": "[LiChU.] 데이터 모델링 / ERD",
+        "bottom": 746,
+        "limit": 744,
+        "overflow": 2,
+        "horizontal": []
+      },
+      {
+        "page": 2,
+        "title": "엔티티 관계 상세 요약",
+        "bottom": 558,
+        "limit": 744,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 3,
+        "title": "테이블 정의서 · DEPARTMENTS",
+        "bottom": 391,
+        "limit": 744,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 4,
+        "title": "테이블 정의서 · USERS",
+        "bottom": 690,
+        "limit": 744,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 5,
+        "title": "테이블 정의서 · LICENSES",
+        "bottom": 674,
+        "limit": 744,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 6,
+        "title": "테이블 정의서 · LICENSE_REQUESTS",
+        "bottom": 696,
+        "limit": 744,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 7,
+        "title": "테이블 정의서 · LICENSE_ASSIGNMENTS",
+        "bottom": 712,
+        "limit": 744,
+        "overflow": 0,
+        "horizontal": []
+      },
+      {
+        "page": 8,
+        "title": "상태 전이 · 집계 · UI 필드 매핑",
+        "bottom": 687,
+        "limit": 744,
+        "overflow": 0,
+        "horizontal": []
+      }
+    ]
+  }
+]

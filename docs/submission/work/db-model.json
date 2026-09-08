@@ -1,0 +1,575 @@
+[
+  {
+    "name": "departments",
+    "cols": [
+      {
+        "name": "id",
+        "type": "integer",
+        "keys": [
+          "PK"
+        ],
+        "nullable": false,
+        "default": "자동 증가",
+        "desc": "고유 식별자",
+        "refs": []
+      },
+      {
+        "name": "name",
+        "type": "varchar(100)",
+        "keys": [
+          "UQ"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "이름 / 명칭",
+        "refs": []
+      }
+    ],
+    "checks": [],
+    "indices": []
+  },
+  {
+    "name": "users",
+    "cols": [
+      {
+        "name": "id",
+        "type": "integer",
+        "keys": [
+          "PK"
+        ],
+        "nullable": false,
+        "default": "자동 증가",
+        "desc": "고유 식별자",
+        "refs": []
+      },
+      {
+        "name": "employee_no",
+        "type": "varchar(50)",
+        "keys": [
+          "UQ"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "사번. 중복 불가",
+        "refs": []
+      },
+      {
+        "name": "name",
+        "type": "varchar(100)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "이름 / 명칭",
+        "refs": []
+      },
+      {
+        "name": "department_id",
+        "type": "integer",
+        "keys": [
+          "FK"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "소속 부서 ID; 참조 departments.id",
+        "refs": [
+          "departments.id"
+        ]
+      },
+      {
+        "name": "job_title",
+        "type": "varchar(100)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "직급 / 직책",
+        "refs": []
+      },
+      {
+        "name": "email",
+        "type": "varchar(255)",
+        "keys": [
+          "UQ"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "회사 이메일. 소문자 정규화, 중복 불가",
+        "refs": []
+      },
+      {
+        "name": "username",
+        "type": "varchar(100)",
+        "keys": [
+          "UQ"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "로그인 아이디. 중복 불가",
+        "refs": []
+      },
+      {
+        "name": "password_hash",
+        "type": "varchar(255)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "bcrypt 해시. 평문 저장 및 사용자 응답 노출 금지 (REQ-NFN-001)",
+        "refs": []
+      },
+      {
+        "name": "profile_image",
+        "type": "text",
+        "keys": [],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "선택 프로필 Data URL (JPEG/PNG/WEBP). null은 기본 프로필. 별도 용량 제한 없음",
+        "refs": []
+      },
+      {
+        "name": "role",
+        "type": "varchar(10)",
+        "keys": [],
+        "nullable": false,
+        "default": "USER (앱)",
+        "desc": "USER(임직원) / MASTER(관리자). 가입 시 USER 고정",
+        "refs": []
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": false,
+        "default": "애플리케이션 UTC now()",
+        "desc": "생성 시각(UTC)",
+        "refs": []
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": false,
+        "default": "애플리케이션 UTC now()",
+        "desc": "최종 수정 시각(UTC); 수정 시 앱에서 UTC now() 갱신",
+        "refs": []
+      }
+    ],
+    "checks": [
+      "role IN ('USER','MASTER')"
+    ],
+    "indices": []
+  },
+  {
+    "name": "licenses",
+    "cols": [
+      {
+        "name": "id",
+        "type": "integer",
+        "keys": [
+          "PK"
+        ],
+        "nullable": false,
+        "default": "자동 증가",
+        "desc": "고유 식별자",
+        "refs": []
+      },
+      {
+        "name": "name",
+        "type": "varchar(150)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "이름 / 명칭",
+        "refs": []
+      },
+      {
+        "name": "vendor",
+        "type": "varchar(100)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "공급사",
+        "refs": []
+      },
+      {
+        "name": "plan_name",
+        "type": "varchar(100)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "구독 플랜",
+        "refs": []
+      },
+      {
+        "name": "category",
+        "type": "varchar(50)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "분류(개발 / 디자인 / 생산성 등)",
+        "refs": []
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "라이선스 설명",
+        "refs": []
+      },
+      {
+        "name": "total_seats",
+        "type": "integer",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "전체 좌석 수. 현재 ACTIVE 사용량 미만으로 축소 불가",
+        "refs": []
+      },
+      {
+        "name": "unit_price",
+        "type": "numeric(12, 2)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "사용자당 USD 단가. 소수 둘째 자리까지, 총 12자리",
+        "refs": []
+      },
+      {
+        "name": "billing_cycle",
+        "type": "varchar(10)",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "MONTHLY(월간) / YEARLY(연간)",
+        "refs": []
+      },
+      {
+        "name": "status",
+        "type": "varchar(10)",
+        "keys": [],
+        "nullable": false,
+        "default": "ACTIVE (앱)",
+        "desc": "ACTIVE / INACTIVE. 비활성화는 기존 할당을 종료하지 않음",
+        "refs": []
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": false,
+        "default": "애플리케이션 UTC now()",
+        "desc": "생성 시각(UTC)",
+        "refs": []
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": false,
+        "default": "애플리케이션 UTC now()",
+        "desc": "최종 수정 시각(UTC); 수정 시 앱에서 UTC now() 갱신",
+        "refs": []
+      }
+    ],
+    "checks": [
+      "billing_cycle IN ('MONTHLY','YEARLY')",
+      "status IN ('ACTIVE','INACTIVE')",
+      "total_seats >= 0",
+      "unit_price >= 0"
+    ],
+    "indices": []
+  },
+  {
+    "name": "license_requests",
+    "cols": [
+      {
+        "name": "id",
+        "type": "integer",
+        "keys": [
+          "PK"
+        ],
+        "nullable": false,
+        "default": "자동 증가",
+        "desc": "고유 식별자",
+        "refs": []
+      },
+      {
+        "name": "user_id",
+        "type": "integer",
+        "keys": [
+          "FK"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "대상 직원 users.id; 참조 users.id",
+        "refs": [
+          "users.id"
+        ]
+      },
+      {
+        "name": "license_id",
+        "type": "integer",
+        "keys": [
+          "FK"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "대상 라이선스 licenses.id; 참조 licenses.id",
+        "refs": [
+          "licenses.id"
+        ]
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "사용 목적 또는 처리 사유. 입력은 공백 제거 후 1~4000자",
+        "refs": []
+      },
+      {
+        "name": "start_date",
+        "type": "date",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "사용 시작 예정일",
+        "refs": []
+      },
+      {
+        "name": "end_date",
+        "type": "date",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "사용 종료 예정일. start_date 이상",
+        "refs": []
+      },
+      {
+        "name": "status",
+        "type": "varchar(10)",
+        "keys": [],
+        "nullable": false,
+        "default": "PENDING (앱)",
+        "desc": "PENDING → APPROVED / REJECTED / CANCELED",
+        "refs": []
+      },
+      {
+        "name": "decision_reason",
+        "type": "text",
+        "keys": [],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "승인 / 반려 사유. 처리 전 null",
+        "refs": []
+      },
+      {
+        "name": "processed_by",
+        "type": "integer",
+        "keys": [
+          "FK"
+        ],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "처리자 users.id. 처리 전 null; 참조 users.id",
+        "refs": [
+          "users.id"
+        ]
+      },
+      {
+        "name": "processed_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "승인 / 반려 처리 시각(UTC)",
+        "refs": []
+      },
+      {
+        "name": "canceled_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "사용자 취소 시각(UTC)",
+        "refs": []
+      },
+      {
+        "name": "created_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": false,
+        "default": "애플리케이션 UTC now()",
+        "desc": "생성 시각(UTC)",
+        "refs": []
+      }
+    ],
+    "checks": [
+      "start_date <= end_date",
+      "status IN ('PENDING','APPROVED','REJECTED','CANCELED')"
+    ],
+    "indices": [
+      {
+        "name": "uq_pending_user_license",
+        "columns": [
+          "user_id",
+          "license_id"
+        ],
+        "unique": true,
+        "where": "status = 'PENDING'"
+      }
+    ]
+  },
+  {
+    "name": "license_assignments",
+    "cols": [
+      {
+        "name": "id",
+        "type": "integer",
+        "keys": [
+          "PK"
+        ],
+        "nullable": false,
+        "default": "자동 증가",
+        "desc": "고유 식별자",
+        "refs": []
+      },
+      {
+        "name": "user_id",
+        "type": "integer",
+        "keys": [
+          "FK"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "대상 직원 users.id; 참조 users.id",
+        "refs": [
+          "users.id"
+        ]
+      },
+      {
+        "name": "license_id",
+        "type": "integer",
+        "keys": [
+          "FK"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "대상 라이선스 licenses.id; 참조 licenses.id",
+        "refs": [
+          "licenses.id"
+        ]
+      },
+      {
+        "name": "request_id",
+        "type": "integer",
+        "keys": [
+          "FK",
+          "UQ"
+        ],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "원본 신청 license_requests.id. UNIQUE, 직접 배정 이력은 null 가능; 참조 license_requests.id",
+        "refs": [
+          "license_requests.id"
+        ]
+      },
+      {
+        "name": "status",
+        "type": "varchar(10)",
+        "keys": [],
+        "nullable": false,
+        "default": "ACTIVE (앱)",
+        "desc": "ACTIVE → RETURNED / REVOKED",
+        "refs": []
+      },
+      {
+        "name": "assigned_by",
+        "type": "integer",
+        "keys": [
+          "FK"
+        ],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "할당 처리자 users.id; 참조 users.id",
+        "refs": [
+          "users.id"
+        ]
+      },
+      {
+        "name": "assigned_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": false,
+        "default": "애플리케이션 UTC now()",
+        "desc": "할당 시각(UTC)",
+        "refs": []
+      },
+      {
+        "name": "valid_from",
+        "type": "date",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "권한 승인 시작일. 승인 시 신청 시작일 복사",
+        "refs": []
+      },
+      {
+        "name": "valid_until",
+        "type": "date",
+        "keys": [],
+        "nullable": false,
+        "default": "없음 (필수 입력)",
+        "desc": "권한 승인 종료일. 자동 회수 트리거 아님",
+        "refs": []
+      },
+      {
+        "name": "ended_by",
+        "type": "integer",
+        "keys": [
+          "FK"
+        ],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "반납 / 회수 수행자 users.id; 참조 users.id",
+        "refs": [
+          "users.id"
+        ]
+      },
+      {
+        "name": "ended_at",
+        "type": "timestamptz",
+        "keys": [],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "반납 / 회수 시각(UTC)",
+        "refs": []
+      },
+      {
+        "name": "end_reason",
+        "type": "text",
+        "keys": [],
+        "nullable": true,
+        "default": "NULL",
+        "desc": "종료 사유. 직접 반납은 사용자 직접 반납",
+        "refs": []
+      }
+    ],
+    "checks": [
+      "status IN ('ACTIVE','RETURNED','REVOKED')",
+      "valid_from <= valid_until"
+    ],
+    "indices": [
+      {
+        "name": "uq_active_user_license",
+        "columns": [
+          "user_id",
+          "license_id"
+        ],
+        "unique": true,
+        "where": "status = 'ACTIVE'"
+      }
+    ]
+  }
+]

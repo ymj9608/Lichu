@@ -1,0 +1,106 @@
+Project LiChU {
+  database_type: 'PostgreSQL'
+  Note: '판교5 / P157 / 윤명진; 2026-09-08; v1.2. 실제 SQLAlchemy 모델 기준. 조건부 UNIQUE는 테이블 Note에 기재.'
+}
+
+Table departments {
+  id integer [pk, increment, not null, note: '고유 식별자']
+  name varchar(100) [unique, not null, note: '이름 / 명칭']
+  Note: '''
+부서 마스터; REQ-FUNC-001, 020; 부서명을 분리하여 사용자별 반복 문자열을 방지한다.
+CHECK: 
+DEFAULT: 모델의 role/status/생성·갱신 시각은 애플리케이션 기본값이며 DB server_default는 없다.
+'''
+}
+
+Table users {
+  id integer [pk, increment, not null, note: '고유 식별자']
+  employee_no varchar(50) [unique, not null, note: '사번. 중복 불가']
+  name varchar(100) [not null, note: '이름 / 명칭']
+  department_id integer [not null, note: '소속 부서 ID; 참조 departments.id']
+  job_title varchar(100) [not null, note: '직급 / 직책']
+  email varchar(255) [unique, not null, note: '회사 이메일. 소문자 정규화, 중복 불가']
+  username varchar(100) [unique, not null, note: '로그인 아이디. 중복 불가']
+  password_hash varchar(255) [not null, note: 'bcrypt 해시. 평문 저장 및 사용자 응답 노출 금지 (REQ-NFN-001)']
+  profile_image text [note: '선택 프로필 Data URL (JPEG/PNG/WEBP). null은 기본 프로필. 별도 용량 제한 없음']
+  role varchar(10) [not null, note: 'USER(임직원) / MASTER(관리자). 가입 시 USER 고정']
+  created_at timestamptz [not null, note: '생성 시각(UTC)']
+  updated_at timestamptz [not null, note: '최종 수정 시각(UTC); 수정 시 앱에서 UTC now() 갱신']
+  Note: '''
+직원 및 관리자 계정; REQ-FUNC-001, 002, 003, 020; USER와 MASTER를 동일 테이블의 role로 구분한다. 부서 FK, 사번·아이디·이메일 중복 방지.
+CHECK: role IN ('USER','MASTER')
+DEFAULT: 모델의 role/status/생성·갱신 시각은 애플리케이션 기본값이며 DB server_default는 없다.
+'''
+}
+
+Table licenses {
+  id integer [pk, increment, not null, note: '고유 식별자']
+  name varchar(150) [not null, note: '이름 / 명칭']
+  vendor varchar(100) [not null, note: '공급사']
+  plan_name varchar(100) [not null, note: '구독 플랜']
+  category varchar(50) [not null, note: '분류(개발 / 디자인 / 생산성 등)']
+  description text [not null, note: '라이선스 설명']
+  total_seats integer [not null, note: '전체 좌석 수. 현재 ACTIVE 사용량 미만으로 축소 불가']
+  unit_price "numeric(12, 2)" [not null, note: '사용자당 USD 단가. 소수 둘째 자리까지, 총 12자리']
+  billing_cycle varchar(10) [not null, note: 'MONTHLY(월간) / YEARLY(연간)']
+  status varchar(10) [not null, note: 'ACTIVE / INACTIVE. 비활성화는 기존 할당을 종료하지 않음']
+  created_at timestamptz [not null, note: '생성 시각(UTC)']
+  updated_at timestamptz [not null, note: '최종 수정 시각(UTC); 수정 시 앱에서 UTC now() 갱신']
+  Note: '''
+SaaS 라이선스; REQ-FUNC-004, 010, 015, 016, 017; 좌석과 구독 정보를 저장한다. used_seats는 저장하지 않으며 ACTIVE 할당으로 계산한다.
+CHECK: billing_cycle IN ('MONTHLY','YEARLY'); status IN ('ACTIVE','INACTIVE'); total_seats >= 0; unit_price >= 0
+DEFAULT: 모델의 role/status/생성·갱신 시각은 애플리케이션 기본값이며 DB server_default는 없다.
+'''
+}
+
+Table license_requests {
+  id integer [pk, increment, not null, note: '고유 식별자']
+  user_id integer [not null, note: '대상 직원 users.id; 참조 users.id']
+  license_id integer [not null, note: '대상 라이선스 licenses.id; 참조 licenses.id']
+  reason text [not null, note: '사용 목적 또는 처리 사유. 입력은 공백 제거 후 1~4000자']
+  start_date date [not null, note: '사용 시작 예정일']
+  end_date date [not null, note: '사용 종료 예정일. start_date 이상']
+  status varchar(10) [not null, note: 'PENDING → APPROVED / REJECTED / CANCELED']
+  decision_reason text [note: '승인 / 반려 사유. 처리 전 null']
+  processed_by integer [note: '처리자 users.id. 처리 전 null; 참조 users.id']
+  processed_at timestamptz [note: '승인 / 반려 처리 시각(UTC)']
+  canceled_at timestamptz [note: '사용자 취소 시각(UTC)']
+  created_at timestamptz [not null, note: '생성 시각(UTC)']
+  Note: '''
+사용 신청 및 처리 이력; REQ-FUNC-005, 006, 007, 011, 012, 013, 014; 신청 목적·예정 기간과 승인·반려·취소 결과를 보존한다. 삭제하지 않는다.
+CHECK: start_date <= end_date; status IN ('PENDING','APPROVED','REJECTED','CANCELED')
+uq_pending_user_license: UNIQUE(user_id, license_id) WHERE status = 'PENDING'
+DEFAULT: 모델의 role/status/생성·갱신 시각은 애플리케이션 기본값이며 DB server_default는 없다.
+'''
+}
+
+Table license_assignments {
+  id integer [pk, increment, not null, note: '고유 식별자']
+  user_id integer [not null, note: '대상 직원 users.id; 참조 users.id']
+  license_id integer [not null, note: '대상 라이선스 licenses.id; 참조 licenses.id']
+  request_id integer [unique, note: '원본 신청 license_requests.id. UNIQUE, 직접 배정 이력은 null 가능; 참조 license_requests.id']
+  status varchar(10) [not null, note: 'ACTIVE → RETURNED / REVOKED']
+  assigned_by integer [not null, note: '할당 처리자 users.id; 참조 users.id']
+  assigned_at timestamptz [not null, note: '할당 시각(UTC)']
+  valid_from date [not null, note: '권한 승인 시작일. 승인 시 신청 시작일 복사']
+  valid_until date [not null, note: '권한 승인 종료일. 자동 회수 트리거 아님']
+  ended_by integer [note: '반납 / 회수 수행자 users.id; 참조 users.id']
+  ended_at timestamptz [note: '반납 / 회수 시각(UTC)']
+  end_reason text [note: '종료 사유. 직접 반납은 사용자 직접 반납']
+  Note: '''
+사용 권한 할당 및 종료 이력; REQ-FUNC-008, 009, 012, 018, 019, 021; 승인 시 생성한다. ACTIVE만 좌석 점유로 집계하며 반납·회수 시 행을 남긴다.
+CHECK: status IN ('ACTIVE','RETURNED','REVOKED'); valid_from <= valid_until
+uq_active_user_license: UNIQUE(user_id, license_id) WHERE status = 'ACTIVE'
+DEFAULT: 모델의 role/status/생성·갱신 시각은 애플리케이션 기본값이며 DB server_default는 없다.
+'''
+}
+
+Ref: users.department_id > departments.id
+Ref: license_requests.user_id > users.id
+Ref: license_requests.license_id > licenses.id
+Ref: license_requests.processed_by > users.id
+Ref: license_assignments.user_id > users.id
+Ref: license_assignments.license_id > licenses.id
+Ref: license_assignments.request_id - license_requests.id
+Ref: license_assignments.assigned_by > users.id
+Ref: license_assignments.ended_by > users.id

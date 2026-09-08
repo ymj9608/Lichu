@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed,ref} from 'vue'
 import {useRoute} from 'vue-router'
-import {Search,Plus,ArrowRight,Layers as LayersIcon,RefreshCw,Pencil} from 'lucide-vue-next'
+import {Search,Plus,RefreshCw,Pencil} from 'lucide-vue-next'
 import {api,errorOf} from '../api/client'
 import type {License,LicenseInput,Assignment} from '../types'
 import {useResource} from '../utils/useResource'
@@ -47,8 +47,7 @@ async function submit(){
   }catch(e){const err=errorOf(e);modalError.value=[err.message,...Object.values(err.fields || {})].join(' ');await refresh(true)}finally{busy.value=false}
 }
 </script>
-<template><div v-if="admin" class="simple-page-heading"><h1>라이선스 관리</h1></div><div v-else class="page-heading"><div><span class="eyebrow">EXPLORE YOUR POSSIBILITIES</span><h1>좋은 도구가, 좋은 일을 만듭니다.</h1><p>필요한 소프트웨어를 찾아보세요. 더 나은 업무의 시작을 함께합니다.</p></div><span class="page-stamp">YOUR NEXT GREAT IDEA<br><b>STARTS HERE ↗</b></span></div>
-<div v-if="!admin" class="catalog-banner"><div class="banner-icon"><LayersIcon/></div><div><strong>우리 팀의 도구, 한눈에 확인하세요</strong><p>좌석 확인부터 사용 신청까지. 승인 결과는 내 신청에서 확인할 수 있어요.</p></div><RouterLink to="/requests">내 신청 보기<ArrowRight :size="16"/></RouterLink></div>
+<template><div class="simple-page-heading"><h1>{{admin?'라이선스 관리':'라이선스 탐색'}}</h1></div>
 <div class="catalog-toolbar"><div class="category-tabs"><button v-for="cat in categories" :key="cat" :class="{active:category===cat}" @click="category=cat">{{cat}}<span v-if="cat==='전체'">{{licenses.length}}</span></button></div><div class="search-field"><Search :size="17"/><input v-model="search" aria-label="라이선스 검색" placeholder="소프트웨어 또는 공급사 검색"></div></div>
 <div class="list-caption"><span>총 <b>{{filtered.length}}</b>개의 라이선스</span><div class="list-actions"><button class="btn" aria-label="새로고침" @click="refresh()"><RefreshCw :size="16"/>새로고침</button><button v-if="admin" class="btn primary" @click="edit(null)"><Plus :size="17"/>라이선스 등록</button></div></div>
 <ResourceState :loading="loading" :error="error" :empty="!filtered.length" message="조건에 맞는 라이선스가 없습니다." @retry="refresh()"><div class="license-grid"><LicenseCard v-for="lic in filtered" :key="lic.id" :license="lic" :admin="admin" @request="openRequest" @users="showUsers" @edit="edit"/></div></ResourceState>

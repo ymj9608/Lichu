@@ -59,7 +59,7 @@ test('회원가입 → 신청 → 승인 → 반납 → 반려 → 취소 → �
   await admin.getByLabel('처리 결과 필터').selectOption('REJECTED')
   await expect(admin.getByRole('row').filter({hasText:product})).toHaveCount(0)
   await page.goto('/requests');await expect(page.getByText('스모크 승인 사유')).toBeVisible()
-  await page.goto('/my-licenses');await page.getByRole('button',{name:'직접 반납'}).click()
+  await page.goto('/my-licenses');await page.getByRole('button',{name:'반납',exact:true}).click()
   await page.getByRole('button',{name:'반납 확인'}).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByText('현재 사용 중인 라이선스가 없습니다.')).toBeVisible()

@@ -1,0 +1,18 @@
+{
+  "operations": 23,
+  "validated_examples": 150,
+  "tables": 5,
+  "columns": 50,
+  "foreign_keys": 9,
+  "screens": 20,
+  "captures": 21,
+  "submission_files": [
+    "판교5-P157-윤명진-API.pdf",
+    "판교5-P157-윤명진-API.yml",
+    "판교5-P157-윤명진-DB.dbml",
+    "판교5-P157-윤명진-DB.pdf",
+    "판교5-P157-윤명진-화면설계서.pdf"
+  ],
+  "requirements_definition": "unchanged",
+  "result": "PASS"
+}

@@ -1,0 +1,149 @@
+{
+  "SCR-AUTH-001": {
+    "file": "SCR-AUTH-001.png",
+    "markers": 5,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-SIGNUP-001": {
+    "file": "SCR-SIGNUP-001.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-COMMON-001": {
+    "file": "SCR-COMMON-001.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-LIC-001": {
+    "file": "SCR-LIC-001.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-COMMON-002": {
+    "file": "SCR-COMMON-002.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-LIC-002": {
+    "file": "SCR-LIC-002.png",
+    "markers": 5,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-REQ-001": {
+    "file": "SCR-REQ-001.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-REQ-002": {
+    "file": "SCR-REQ-002.png",
+    "markers": 3,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-MYLIC-001": {
+    "file": "SCR-MYLIC-001.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-MYLIC-002": {
+    "file": "SCR-MYLIC-002.png",
+    "markers": 3,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-001": {
+    "file": "SCR-ADM-001.png",
+    "markers": 3,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-002": {
+    "file": "SCR-ADM-002.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-007": {
+    "file": "SCR-ADM-007.png",
+    "markers": 3,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-008": {
+    "file": "SCR-ADM-008.png",
+    "markers": 3,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-004": {
+    "file": "SCR-ADM-004.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-003": {
+    "file": "SCR-ADM-003.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-005": {
+    "file": "SCR-ADM-005.png",
+    "markers": 3,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-005-create": {
+    "file": "SCR-ADM-005-create.png",
+    "markers": 3,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-006": {
+    "file": "SCR-ADM-006.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-010": {
+    "file": "SCR-ADM-010.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  },
+  "SCR-ADM-009": {
+    "file": "SCR-ADM-009.png",
+    "markers": 4,
+    "source": "실행 화면",
+    "viewport": "1440 × 1000",
+    "demo": true
+  }
+}

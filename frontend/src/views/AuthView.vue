@@ -46,7 +46,7 @@ async function submit(){
 
 <template><div class="auth-page">
   <section class="auth-story">
-    <a href="/" class="brand"><span class="brand-icon">L<span>•</span></span>LiChU<span class="brand-period">.</span></a>
+    <a href="/" class="brand"><img class="brand-logo" src="/logo.png" alt="LiChU 로고">LiChU<span class="brand-period">.</span></a>
     <div class="auth-visual-dots"><i></i><i></i><i></i></div>
     <div class="story-content">
       <h1>사내 SaaS 라이선스를<br><span>한곳에서 신청하고 관리하세요.</span></h1>

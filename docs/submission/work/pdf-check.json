@@ -1,0 +1,45 @@
+[
+  {
+    "name": "화면설계서",
+    "pages": 47,
+    "bytes": 3045019,
+    "embedded_images": 22,
+    "issues": [],
+    "screen_ids": [
+      "SCR-ADM-001",
+      "SCR-ADM-002",
+      "SCR-ADM-003",
+      "SCR-ADM-004",
+      "SCR-ADM-005",
+      "SCR-ADM-006",
+      "SCR-ADM-007",
+      "SCR-ADM-008",
+      "SCR-ADM-009",
+      "SCR-ADM-010",
+      "SCR-AUTH-001",
+      "SCR-COMMON-001",
+      "SCR-COMMON-002",
+      "SCR-LIC-001",
+      "SCR-LIC-002",
+      "SCR-MYLIC-001",
+      "SCR-MYLIC-002",
+      "SCR-REQ-001",
+      "SCR-REQ-002",
+      "SCR-SIGNUP-001"
+    ]
+  },
+  {
+    "name": "API",
+    "pages": 44,
+    "bytes": 1255839,
+    "embedded_images": 1,
+    "issues": []
+  },
+  {
+    "name": "DB",
+    "pages": 8,
+    "bytes": 627699,
+    "embedded_images": 1,
+    "issues": []
+  }
+]
