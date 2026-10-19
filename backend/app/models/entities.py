@@ -36,6 +36,12 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
 
+class CsiSignupProfile(Base):
+    __tablename__ = 'csi_signup_profiles'
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), primary_key=True)
+    phone_number: Mapped[str] = mapped_column(String(20))
+
+
 class License(Base):
     __tablename__ = 'licenses'
     __table_args__ = (

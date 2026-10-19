@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     cors_origins: str = 'http://localhost:5173,http://127.0.0.1:5173'
     master_password: str = ''
     demo_password: str = ''
+    csi_lab_mode: bool = False
 
 
 settings = Settings()

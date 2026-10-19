@@ -1,0 +1,60 @@
+name: CSI Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: csi-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Validate scanner configuration
+        env:
+          SCANNER_REPOSITORY: ${{ vars.CSI_SCANNER_REPOSITORY }}
+          SCANNER_REF: ${{ vars.CSI_SCANNER_REF }}
+        run: |
+          [[ "$SCANNER_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || { echo 'Set CSI_SCANNER_REPOSITORY to ymj9608/csi'; exit 1; }
+          [[ "$SCANNER_REF" =~ ^[0-9a-f]{40}$ ]] || { echo 'Set CSI_SCANNER_REF to an approved full commit SHA'; exit 1; }
+
+      - name: Checkout application snapshot
+        uses: actions/checkout@v4
+        with:
+          path: target
+          persist-credentials: false
+
+      - name: Checkout approved CSI scanner
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.CSI_SCANNER_REPOSITORY }}
+          ref: ${{ vars.CSI_SCANNER_REF }}
+          token: ${{ secrets.CSI_SCANNER_READ_TOKEN || github.token }}
+          path: scanner
+          persist-credentials: false
+
+      - name: Prepare Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install approved scanner dependencies
+        run: python -m pip install -r scanner/rules/requirements.txt
+
+      # Never run target/pom.xml, target scripts, or the target application here.
+      - name: Analyze Java and Python snapshot and mask evidence
+        run: python scanner/scripts/scan.py target --output findings.json
+
+      - name: Submit signed findings to CSI
+        env:
+          CSI_BACKEND_URL: ${{ secrets.CSI_BACKEND_URL }}
+          CSI_INTEGRATION_SECRET: ${{ secrets.CSI_INTEGRATION_SECRET }}
+          CSI_FINDINGS_FILE: findings.json
+        run: python scanner/scripts/submit.py

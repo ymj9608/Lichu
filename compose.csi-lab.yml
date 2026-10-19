@@ -1,0 +1,42 @@
+name: lichu-csi-lab
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: lichu_lab
+      POSTGRES_DB: lichu_lab
+      POSTGRES_PASSWORD: ${CSI_LAB_DB_PASSWORD:?Run python3 scripts/init_csi_lab.py}
+    volumes: [csi-lab-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U lichu_lab -d lichu_lab"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.csi
+    environment:
+      DATABASE_URL: postgresql+psycopg://lichu_lab:${CSI_LAB_DB_PASSWORD}@db:5432/lichu_lab
+      JWT_SECRET: ${CSI_LAB_JWT_SECRET:?Run python3 scripts/init_csi_lab.py}
+      MASTER_PASSWORD: ${CSI_LAB_MASTER_PASSWORD:?Run python3 scripts/init_csi_lab.py}
+      DEMO_PASSWORD: ${CSI_LAB_DEMO_PASSWORD:?Run python3 scripts/init_csi_lab.py}
+      CSI_LAB_MODE: 'true'
+      CORS_ORIGINS: http://127.0.0.1:8081
+    depends_on:
+      db: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/departments', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 30
+    security_opt: [no-new-privileges:true]
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.csi
+    ports: ['127.0.0.1:8081:80']
+    depends_on:
+      backend: {condition: service_healthy}
+volumes:
+  csi-lab-data:

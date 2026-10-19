@@ -1,0 +1,19 @@
+{
+  "repository": "ymj9608/Lichu",
+  "trigger": "LOCAL_DEMO",
+  "scanId": "a69f3e8e-cdbc-47ca-a70f-977bd99ff703",
+  "status": "COMPLETED",
+  "analysisMode": "RULE_BASED",
+  "findings": 9,
+  "rules": [
+    "POL-01",
+    "SEC-02",
+    "SEC-03",
+    "SEC-05"
+  ],
+  "sourceDigest": "1d4b50e1c7d51c979bb61f38a447ce21fd75a79a",
+  "sourceState": "before-fix",
+  "validation": "Real signed intake through local gateway, Kafka, Agent, MCP/RAG and PostgreSQL",
+  "githubPushIntegration": "NOT_RUN: configure Lichu Actions Variables/Secrets and push workflow",
+  "remediationPatch": "git apply --check passed; unchanged source from previously validated 9 to 5 finding comparison"
+}

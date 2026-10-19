@@ -1,0 +1,10 @@
+.git
+.env
+.env.csi
+.runtime
+**/.venv
+**/node_modules
+**/dist
+**/__pycache__
+docs
+reference

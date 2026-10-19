@@ -1,5 +1,24 @@
 # LiChU.
 
+## CSI 회원가입 보안 진단 실습
+
+이 저장소 `ymj9608/Lichu`에서 CSI 회원가입 보안 진단 실습을 진행합니다. 기존 기능에 실습 모드를 추가했으며 기존 일반 모드 DB와 별도의 실습 DB를 사용합니다.
+
+```sh
+python3 scripts/init_csi_lab.py
+docker compose --env-file .env.csi -f compose.csi-lab.yml up -d --build
+```
+
+회원가입: **http://127.0.0.1:8081/signup**. `테스트 데이터 채우기` → 회원가입 → 생성된 아이디와 `Demo-Only-2026!`로 로그인합니다. 실습 계정의 username을 기억하세요. 실습용 MASTER 비밀번호는 `.env.csi`의 `CSI_LAB_MASTER_PASSWORD`입니다.
+
+`CSI_LAB_MODE=true`인 격리 Compose에서만 취약한 회원가입 경로가 활성화됩니다. 기본 모드는 기존 bcrypt 회원가입을 유지합니다. 실습 모드는 고정 Salt + 빠른 SHA-256 해시 저장, 합성 비밀번호/이메일 로그, 정책 검토 대상 휴대폰 번호 수집을 실제 구현합니다. 입력은 합성 계정으로 제한합니다. 별도 PostgreSQL volume을 사용하며 재시작 후에도 계정이 유지됩니다.
+
+- [GitHub Actions 설정과 Push → CSI 진단 전체 절차](docs/csi/GITHUB_ACTIONS_SETUP.md)
+- [비밀번호·로그 수정 패치](docs/csi/signup-remediation.patch) — 기본 소스에는 적용하지 않았습니다.
+- [실제 로컬 검증 기록](docs/csi/verification.json)
+
+아래 기존 빠른 실행은 일반 Lichu 모드입니다. CSI와 함께 사용할 때는 위 실습 Compose의 **8081** 포트를 사용하세요. 기존 개발 모드의 5173 포트는 CSI 대시보드와 겹칩니다.
+
 **한정된 SaaS Seat의 신청 → 승인·반려 → 할당 → 반납·회수를 하나의 Workflow로 관리합니다.**
 
 Vue 3 + FastAPI + PostgreSQL 모노레포. 모든 업무 화면은 실제 API를 사용합니다. 외부 SaaS 계정 발급이나 Vendor API는 포함하지 않습니다.

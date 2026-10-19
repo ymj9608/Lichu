@@ -14,6 +14,12 @@ app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(','
 app.include_router(router)
 
 
+@app.get('/api/csi-lab', include_in_schema=False)
+def csi_lab():
+    from app.core.csi_signup import lab_version
+    return {'enabled': settings.csi_lab_mode, 'version': lab_version() if settings.csi_lab_mode else 'standard'}
+
+
 @app.exception_handler(AppError)
 async def business_error(request: Request, exc: AppError):
     return JSONResponse(status_code=exc.status, content={'code': exc.code, 'message': exc.message, 'fields': exc.fields})

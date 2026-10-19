@@ -1,0 +1,14 @@
+name: lichu-csi-intake
+services:
+  intake:
+    image: nginx:1.27-alpine
+    ports:
+      - "127.0.0.1:8091:8080"
+    volumes:
+      - ./infra/intake.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [csi]
+    security_opt: [no-new-privileges:true]
+networks:
+  csi:
+    external: true
+    name: csi_default

@@ -9,3 +9,7 @@ dist/
 *.db
 playwright-report/
 test-results/
+
+.env.csi
+
+.runtime/

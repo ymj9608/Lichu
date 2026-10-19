@@ -14,10 +14,20 @@ const remember=ref(false),help=ref<'id'|'password'|null>(null)
 const form=ref({employee_no:'',name:'',department_id:0,job_title:'',email:'',username:'',password:'',password_confirm:'',profile_image:null as string|null})
 const labels:Record<string,string>={employee_no:'사번',name:'이름',department_id:'부서',job_title:'직급 / 직책',email:'회사 이메일',username:'아이디',password:'비밀번호',password_confirm:'비밀번호 확인'}
 const signupKeys=['employee_no','name','department_id','job_title','email','username','password','password_confirm'] as const
+const lab=ref({enabled:false,version:'standard'}),phoneNumber=ref('')
+async function loadLab(){try{lab.value=(await api.get('/csi-lab')).data}catch{error.value='실습 환경 정보를 불러오지 못했습니다. 새로고침해주세요.'}}
+function fillLab(){
+  const key=crypto.randomUUID().slice(0,8)
+  form.value={employee_no:`CSI-${key}`,name:'테스트 사용자',department_id:departments.value[0]?.id||0,
+    job_title:'테스트 개발자',email:`csi.${key}@example.com`,username:`csi_${key}`,
+    password:'Demo-Only-2026!',password_confirm:'Demo-Only-2026!',profile_image:null}
+  phoneNumber.value='010-0000-0000'
+}
 
 async function loadDepartments(){try{departments.value=(await api.get<Department[]>('/departments')).data;error.value=''}catch(e){error.value=errorOf(e).message}}
 onMounted(()=>{
   void loadDepartments()
+  void loadLab()
   const saved=localStorage.getItem('lichu_saved_username')
   if(saved){form.value.username=saved;remember.value=true}
 })
@@ -32,7 +42,7 @@ function selectImage(event:Event){
 async function submit(){
   busy.value=true;error.value='';fieldErrors.value={}
   try{
-    if(signup.value){await api.post('/auth/signup',form.value);form.value.password='';form.value.password_confirm='';await router.push('/login?registered=1')}
+    if(signup.value){await api.post('/auth/signup',{...form.value,...(lab.value.enabled?{phone_number:phoneNumber.value||null}:{})});form.value.password='';form.value.password_confirm='';await router.push('/login?registered=1')}
     else{
       await auth.login(form.value.username,form.value.password)
       if(remember.value)localStorage.setItem('lichu_saved_username',form.value.username)
@@ -59,11 +69,12 @@ async function submit(){
     <div class="auth-form-decoration"><span></span><span></span><span></span></div>
     <div class="auth-form">
       <div class="auth-tabs"><RouterLink to="/login" :class="{active:!signup}" @click="error='';fieldErrors={}">로그인</RouterLink><RouterLink to="/signup" :class="{active:signup}" @click="error='';fieldErrors={}">회원가입</RouterLink></div>
+      <div v-if="lab.enabled" class="notice csi-lab-notice" role="status"><strong>CSI 보안 진단 실습 · {{lab.version==='before-fix'?'수정 전 버전':'수정 후 버전'}}</strong><p>실습 전용 DB를 사용합니다. 실제 개인정보와 사용 중인 비밀번호를 입력하지 마세요.</p><button v-if="signup" class="btn compact" type="button" :disabled="!departments.length" @click="fillLab">테스트 데이터 채우기</button></div>
       <p v-if="route.query.registered" class="notice success" role="status">회원가입이 완료되었습니다. 로그인해주세요.</p>
       <p v-if="route.query.expired" class="notice">로그인 시간이 만료되었습니다. 다시 로그인해주세요.</p>
       <div v-if="error" class="notice error" role="alert">{{error}}<button v-if="!departments.length&&signup" class="text-button" @click="loadDepartments">부서 목록 다시 불러오기</button></div>
       <form @submit.prevent="submit">
-        <div v-if="signup" class="profile-upload auth-profile-upload">
+        <div v-if="signup&&!lab.enabled" class="profile-upload auth-profile-upload">
           <div class="profile-preview"><img :src="form.profile_image || '/default-profile.svg'" :alt="form.profile_image?'프로필 미리보기':'기본 프로필'"></div>
           <label class="btn compact"><Camera :size="15"/>프로필 사진 등록<input class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" @change="selectImage"></label>
           <span>선택하지 않으면 기본 프로필로 등록됩니다.</span><small v-if="fieldErrors.profile_image" class="field-error">{{fieldErrors.profile_image}}</small>
@@ -74,6 +85,7 @@ async function submit(){
           <label>비밀번호<input v-model="form.password" type="password" autocomplete="current-password" placeholder="비밀번호를 입력해주세요" required></label>
           <div class="login-options"><label class="check-label"><input v-model="remember" type="checkbox">로그인 정보 저장</label><div><button type="button" @click="help='id'">ID 찾기</button><span></span><button type="button" @click="help='password'">비밀번호 찾기</button></div></div>
         </template>
+        <label v-if="signup&&lab.enabled">휴대폰 번호 · 정책 검토 대상<input v-model="phoneNumber" type="tel" placeholder="010-0000-0000" pattern="010-0000-[0-9]{4}" maxlength="13" autocomplete="off"><small>추가 수집 항목입니다. 합성 번호만 입력하세요.</small></label>
         <button class="btn primary full auth-submit" :disabled="busy"><LoaderCircle v-if="busy" class="spin" :size="18"/>{{busy?'처리 중…':signup?'회원가입':'로그인'}}<ArrowRight :size="18"/></button>
       </form>
     </div>

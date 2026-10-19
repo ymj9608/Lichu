@@ -49,6 +49,7 @@ class UserOut(BaseModel):
 
 
 class Signup(Input):
+    phone_number: str | None = Field(default=None, pattern=r'^010-0000-[0-9]{4}$')
     employee_no: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
     name: Text100
     department_id: int = Field(gt=0)
