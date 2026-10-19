@@ -1,24 +1,35 @@
-# 전화번호 회원가입 진단 실습
+# 회원가입 수정 및 OpenAI 진단 검증
 
-`dev` 브랜치는 기존 전화번호 입력·저장 기능에 필수 입력 검증과 의도적인 전화번호 로그 노출을 추가한 수정 전 실습 버전입니다. `CSI_LAB_MODE=true`인 별도 실습 DB에서만 사용합니다. 일반 회원가입 모드는 전화번호 입력을 거절하며 이 로그 함수를 호출하지 않습니다.
+현재 `dev`는 **수정 후 버전**입니다. 수정 전 커밋은 `baa909328b3d52279faa8cf1ba8fc090bf79aa51`이며 같은 브랜치에서 실제 GitHub Push 검사 10건을 기록했습니다.
 
-## 직접 확인
+## 변경 내용
 
-1. CSI Docker 서비스와 외부 HTTPS 터널을 실행합니다. 설정은 [GitHub Actions 가이드](GITHUB_ACTIONS_SETUP.md)를 따릅니다.
-2. Lichu 실습 사이트 `http://127.0.0.1:8081/signup`에서 **테스트 데이터 채우기**를 누릅니다. 전화번호는 `010-0000-1234` 같은 합성 값만 사용합니다.
-3. 전화번호를 지우면 가입할 수 없습니다. 합성 번호를 입력하면 가입·로그인할 수 있고, 실습 서버 로그에 번호가 마스킹 없이 기록됩니다.
-4. `dev`에서 소스 변경을 커밋하고 Push하면 **CSI Security Scan**이 실행됩니다. 회원가입 버튼 자체가 보안 검사를 트리거하지는 않습니다.
-5. Actions Summary의 Scan ID를 CSI Scan History에서 찾습니다. Repository `ymj9608/Lichu`, Branch `dev`, Commit SHA가 Push한 커밋과 같고 상태가 `COMPLETED`인지 확인합니다.
+- 고정 Salt + SHA-256 비밀번호 저장을 사용자별 무작위 Salt를 사용하는 bcrypt 비용 12로 변경했습니다.
+- 비밀번호·이메일·전화번호 원문 로그를 제거하고 가입 완료 이벤트만 기록합니다.
+- 합성 전화번호 필수 입력·저장은 유지합니다. 정책 승인 여부를 확인하기 전에는 해당 필드 후보가 남습니다.
+- 기존 SHA-256 실습 계정은 로그인되지 않습니다. **테스트 데이터 채우기**로 새 계정을 생성하세요. 기존 데이터를 삭제하거나 비밀번호를 추측해 이관하지 않습니다.
+- `signup-remediation.patch`는 수정 전 커밋용 기록입니다. 현재 소스에 다시 적용하지 마세요.
 
-## 예상 탐지와 수정
+## 직접 검증 순서
 
-- 이전 `main` 기준 9건 → 이 버전 10건: `backend/app/core/csi_signup.py`의 전화번호 로그가 **SEC-05 / HIGH / SUSPECTED**로 추가됩니다. 파일 선언을 근거로 한 기존 정책 후보는 별도로 유지됩니다.
-- GitHub로 전송하는 코드 근거에서는 문자열을 마스킹합니다. 취약한 앱 로그와 CSI에 저장되는 근거는 별개입니다.
-- `git apply --check docs/csi/signup-remediation.patch` 후 `git apply docs/csi/signup-remediation.patch`로 비밀번호 저장 및 모든 민감정보 로그를 수정할 수 있습니다. 패치 적용 후 예상 결과는 **5건**이며 모두 정책 검토 후보입니다.
-- 패치 적용 후 기존 실습 계정은 다시 가입해야 합니다. 로컬 앱 반영에는 Docker 재빌드가 필요합니다. Push는 검사만 실행하며 앱을 자동 배포하지 않습니다.
+1. CSI Docker와 Cloudflare 터널을 실행하고 Lichu 저장소의 `CSI_BACKEND_URL`이 현재 HTTPS 주소인지 확인합니다. 자세한 설정은 [Actions 가이드](GITHUB_ACTIONS_SETUP.md)를 참고하세요.
+2. Lichu `dev`에서 소스 변경을 커밋·Push합니다. GitHub **Actions → CSI Security Scan**에서 해당 커밋의 실행을 엽니다.
+3. **Analyze Java and Python snapshot and mask evidence**, **Submit signed findings to CSI** 단계의 성공과 Summary의 Scan ID를 확인합니다. Actions 성공은 접수 성공이지 Agent 분석 완료가 아닙니다.
+4. CSI `http://localhost:5173`에 로그인하고 **Scan History**에서 Repository `ymj9608/Lichu`, Branch `dev`, Commit SHA, Scan ID가 일치하는 검사를 엽니다.
+5. 상태 **COMPLETED**, 분석 모드 **LLM**, 탐지 결과 **5건**을 확인합니다. `LLM_FALLBACK`이면 OpenAI 호출 또는 응답 검증에 실패해 규칙 기반으로 대체된 상태입니다. `RULE_BASED`이면 LLM 비활성 설정입니다.
+6. 이전 동일 브랜치 검사와 비교해 **신규 0 / 미탐지 5 / 유지 5**인지 확인합니다. SEC-02 1건, SEC-03 1건, SEC-05 3건이 사라지고 POL-01 5건이 남는 것이 예상 결과입니다. 미탐지는 취약점 상태의 자동 RESOLVED 처리가 아닙니다.
+7. 남은 Finding에서 **AI Analysis**, **Security References**를 열어 설명과 실제 문서 조항·페이지를 확인합니다. **Execution Logs**에서 MCP 호출, 문서 검색, 보고서 저장을 확인합니다. 정책 후보는 법률 위반 확정이 아닙니다.
 
-현재 정책 후보와 `SUSPECTED`는 법률 위반 확정이 아닙니다. Agent가 `RULE_BASED`로 설정되어 있으면 LangGraph·MCP·RAG 경로를 실행하되 외부 LLM은 사용하지 않습니다.
+`LLM`은 GPT가 기존 정적 분석 후보의 설명·개선 권고를 보완했다는 의미입니다. 도구 선택은 LangGraph 코드가 수행하며 외부 LLM에는 코드 원문·개인정보 값·PDF 전체 원문을 보내지 않습니다. 이미 완료된 수정 전 검사는 RULE_BASED 기록으로 유지됩니다.
 
-## 로컬 검증
+## 회원가입 동작 검증
 
-변경 전 9건, 변경 후 10건, 수정 패치 적용 복사본 5건을 실제 Semgrep으로 검증했습니다. 변경 전후 fingerprint 비교에서 전화번호 로그 1건만 추가되었습니다. 변경 버전과 패치 버전 모두 백엔드 테스트 29개 통과·1개 건너뜀(기존 PostgreSQL 동시성 테스트)이며, 브라우저에서 전화번호 필수 입력·가입·로그인과 모바일 가로 넘침 없음을 확인했습니다. 실제 GitHub 실행 결과는 Actions와 CSI에서 해당 커밋으로 확인합니다.
+GitHub Push는 로컬 앱을 자동 배포하지 않습니다. 소스 변경을 로컬 사이트에도 반영하려면 Lichu 디렉터리에서 실행합니다.
+
+```sh
+docker compose --env-file .env.csi -f compose.csi-lab.yml up -d --build backend frontend
+```
+
+`http://127.0.0.1:8081/signup`에서 **수정 후 버전** 표시를 확인하고, **테스트 데이터 채우기**로 합성 계정을 만들어 가입·로그인합니다. 전화번호가 없으면 가입할 수 없습니다. 실제 개인정보는 입력하지 마세요.
+
+백엔드 회귀 테스트는 합성 값의 로그 미노출, bcrypt 비용, 무작위 Salt, 기존 SHA-256 로그인 거절, 새 계정 가입·로그인과 전화번호 검증을 확인합니다.

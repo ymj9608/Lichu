@@ -1,10 +1,9 @@
-"""Intentionally vulnerable signup baseline for an isolated CSI lab database.
+"""Password and logging remediation for an isolated CSI lab database.
 
 Called only when CSI_LAB_MODE=true. This file is source evidence, not a mock finding.
-Apply docs/csi/signup-remediation.patch to demonstrate code-based remediation.
+The remediation patch is already applied; see docs/csi/PHONE_NUMBER_DEMO.md.
 """
-import hashlib
-import hmac
+import bcrypt
 import logging
 from app.core.errors import AppError
 
@@ -23,23 +22,18 @@ def validate_lab_signup(payload):
 
 
 def hash_signup_password(password: str) -> str:
-    # BEFORE FIX: globally shared salt and a fast digest instead of a password KDF.
-    salt = 'lichu-csi-shared-salt'
-    password = password + salt
-    return 'csi-sha256$' + hashlib.sha256(password.encode()).hexdigest()
+    # AFTER FIX: library-generated per-password salt and policy cost 12.
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=12)).decode()
 
 
 def verify_lab_password(password: str, hashed: str) -> bool:
-    return hmac.compare_digest(hash_signup_password(password), hashed)
+    # Legacy lab accounts require re-registration; never guess or migrate passwords.
+    return False
 
 
 def record_signup(password: str, email: str, phone_number: str):
-    # BEFORE FIX: only server-validated synthetic data reaches these deliberate leaks.
-    log.info('CSI lab signup password=%s', password)
-    log.info('CSI lab signup email=%s', email)
-    # Intentionally unmasked synthetic phone number: CSI SEC-05 regression scenario.
-    log.info('CSI lab signup phone=%s', phone_number)
+    log.info('CSI lab signup completed')
 
 
 def lab_version() -> str:
-    return 'before-fix'
+    return 'after-fix'

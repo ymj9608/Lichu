@@ -2,7 +2,8 @@ from sqlalchemy import select
 import pytest
 from app.core.config import settings
 from app.models.entities import User, CsiSignupProfile
-from app.core.csi_signup import lab_version
+from app.core.csi_signup import lab_version, hash_signup_password
+from app.core.security import verify_password
 
 
 def synthetic():
@@ -23,14 +24,11 @@ def test_lab_signup_persists_logs_and_login(context, monkeypatch, caplog):
     with factory() as db:
         user = db.scalar(select(User).where(User.username == data['username']))
         assert db.get(CsiSignupProfile, user.id).phone_number == '010-0000-0000'
-        if lab_version() == 'before-fix':
-            assert user.password_hash.startswith('csi-sha256$')
-            assert data['password'] in caplog.text and data['email'] in caplog.text
-            assert 'CSI lab signup phone=' + data['phone_number'] in caplog.text
-        else:
-            assert user.password_hash.startswith('$2b$12$')
-            assert data['password'] not in caplog.text and data['email'] not in caplog.text
-            assert data['phone_number'] not in caplog.text
+        assert lab_version() == 'after-fix'
+        assert user.password_hash.startswith('$2b$12$')
+        assert data['password'] not in caplog.text and data['email'] not in caplog.text
+        assert data['phone_number'] not in caplog.text
+        assert 'CSI lab signup completed' in caplog.text
     login = client.post('/api/auth/login', json={'username':data['username'], 'password':data['password']})
     assert login.status_code == 200
     token = login.json()['access_token']
@@ -51,6 +49,18 @@ def test_standard_mode_rejects_lab_field(context, monkeypatch):
     monkeypatch.setattr(settings, 'csi_lab_mode', False)
     assert context[0].post('/api/auth/signup', json=synthetic()).status_code == 422
     assert context[0].get('/api/csi-lab').json()['enabled'] is False
+
+
+def test_signup_hashes_have_unique_salts_and_reject_legacy(monkeypatch):
+    monkeypatch.setattr(settings, 'csi_lab_mode', True)
+    password = synthetic()['password']
+    first, second = hash_signup_password(password), hash_signup_password(password)
+    assert first != second
+    assert verify_password(password, first) and verify_password(password, second)
+    assert not verify_password('wrong', first)
+    import hashlib
+    legacy = 'csi-sha256$' + hashlib.sha256((password + 'lichu-csi-shared-salt').encode()).hexdigest()
+    assert not verify_password(password, legacy)
 
 
 @pytest.mark.parametrize('provided', [False, True])
