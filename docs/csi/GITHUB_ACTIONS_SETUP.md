@@ -5,7 +5,7 @@
 ## 1. 전체 흐름과 주소 구분
 
 ```text
-Lichu 소스 수정 → git push (main 또는 develop)
+Lichu 소스 수정 → git push (main, develop 또는 dev)
   → GitHub Hosted Runner
   → Lichu 소스 checkout + 승인된 CSI 커밋 checkout
   → Semgrep으로 Python/Java 소스 읽기 전용 검사
@@ -82,13 +82,13 @@ cd "/Users/yunmyeongjin/Desktop/MCP_실습/csi"
   --submit-base http://127.0.0.1:8091
 ```
 
-실제 소스 검사 → 게이트웨이 → HMAC 검증 → Kafka → Agent/MCP → DB 저장이 실행됩니다. 현재 수정 전 기준은 **9건**입니다.
+실제 소스 검사 → 게이트웨이 → HMAC 검증 → Kafka → Agent/MCP → DB 저장이 실행됩니다. 현재 수정 전 기준은 **10건**입니다.
 
 | 방어 설계 검토 | 탐지 |
 |---|---|
 | 유출된 비밀번호 해시의 오프라인 추측 방어 | SEC-02, 비밀번호에 빠른 SHA-256 사용 1건 |
 | 사전 계산 결과 재사용 방어 | SEC-03, 고정 Salt 1건 |
-| 로그를 통한 비밀정보/개인정보 유출 방어 | SEC-05, 비밀번호와 이메일 로그 2건 |
+| 로그를 통한 비밀정보/개인정보 유출 방어 | SEC-05, 비밀번호·이메일·전화번호 로그 3건 |
 | 사내 승인 범위를 벗어난 개인정보 처리 검토 | POL-01, 이름·휴대폰 번호 필드 후보 5건 |
 
 마지막 항목은 독립적인 공격 기법이 아니라 정책 불일치 검토입니다. 필드 선언이 여러 계층에 있어 코드 위치별 후보가 각각 표시됩니다. 기본 PrivacyGuard 예제 정책을 그대로 적용하므로 기존 Lichu의 이름 필드도 검토 대상으로 남습니다. 실제 사내 승인 여부와 법률 위반을 확정하지 않습니다.
@@ -183,7 +183,7 @@ git push -u origin main
 
 GitHub **Actions → CSI Security Scan → 최신 실행**을 엽니다. 단계는 설정 검증 → 앱 checkout → 승인된 CSI checkout → Python 준비 → Semgrep 설치 → 소스 분석/마스킹 → 결과 전송 순서입니다.
 
-검사 job은 대상 앱의 `npm`, `pytest`, `Maven`, 설치 스크립트 또는 서버를 실행하지 않습니다. 승인된 CSI 검사 코드만 실행합니다. `.py`/`.java` 외 웹 프론트엔드 TypeScript는 현재 분석 대상 밖입니다. 파일 종류와 무관하게 main/develop Push는 검사 작업을 트리거합니다.
+검사 job은 대상 앱의 `npm`, `pytest`, `Maven`, 설치 스크립트 또는 서버를 실행하지 않습니다. 승인된 CSI 검사 코드만 실행합니다. `.py`/`.java` 외 웹 프론트엔드 TypeScript는 현재 분석 대상 밖입니다. 파일 종류와 무관하게 main/develop/dev Push는 검사 작업을 트리거합니다.
 
 전송 성공 시 Actions Summary에 Scan ID와 정적 분석 건수가 표시됩니다. **Actions 성공은 HTTP 202 접수 성공이며 AI 완료/보안 통과 판정이 아닙니다.** CSI의 **Scan History**에서 같은 Scan ID가 `QUEUED → RUNNING → COMPLETED`로 바뀌는지 확인합니다. 실패하면 `FAILED`와 Execution Logs를 확인합니다.
 
@@ -212,9 +212,9 @@ git commit -m "Use bcrypt cost 12 and remove sensitive signup logs"
 git push
 ```
 
-패치는 실제 회원가입 해시를 사용자별 무작위 Salt를 쓰는 bcrypt 비용 12로 바꾸고, 비밀번호/이메일 로그를 제거합니다. 파일을 수동으로 수정했다면 패치를 억지로 적용하지 말고 코드 변경을 검토하세요.
+패치는 실제 회원가입 해시를 사용자별 무작위 Salt를 쓰는 bcrypt 비용 12로 바꾸고, 비밀번호·이메일·전화번호 로그를 제거합니다. 파일을 수동으로 수정했다면 패치를 억지로 적용하지 말고 코드 변경을 검토하세요.
 
-현재 기준 예상: **9건 → 5건**, **4건 제거 / 5건 유지 / 0건 추가**. 남는 이름·휴대폰 번호 후보는 정책 검토가 필요합니다. 이를 없애려고 실제 수집 경로를 확인하지 않고 규칙을 비활성화하거나 승인 정책을 임의 변경하지 않습니다.
+현재 기준 예상: **10건 → 5건**, **5건 제거 / 5건 유지 / 0건 추가**. 남는 이름·휴대폰 번호 후보는 정책 검토가 필요합니다. 이를 없애려고 실제 수집 경로를 확인하지 않고 규칙을 비활성화하거나 승인 정책을 임의 변경하지 않습니다.
 
 로컬 회원가입 앱에도 수정 내용을 반영하려면 다음을 실행합니다. GitHub Push 자체가 로컬 앱을 재배포하지는 않습니다.
 

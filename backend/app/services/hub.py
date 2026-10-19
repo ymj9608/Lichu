@@ -68,7 +68,7 @@ def signup(db: Session, payload: Signup):
         if payload.phone_number:
             db.add(CsiSignupProfile(user_id=user.id, phone_number=payload.phone_number))
             db.flush()
-        record_signup(payload.password, payload.email)
+        record_signup(payload.password, payload.email, payload.phone_number)
     return user_out(user)
 
 

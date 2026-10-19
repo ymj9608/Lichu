@@ -2,7 +2,7 @@ name: CSI Security Scan
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, dev]
   workflow_dispatch:
 
 permissions:

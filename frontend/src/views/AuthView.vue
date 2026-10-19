@@ -85,7 +85,7 @@ async function submit(){
           <label>비밀번호<input v-model="form.password" type="password" autocomplete="current-password" placeholder="비밀번호를 입력해주세요" required></label>
           <div class="login-options"><label class="check-label"><input v-model="remember" type="checkbox">로그인 정보 저장</label><div><button type="button" @click="help='id'">ID 찾기</button><span></span><button type="button" @click="help='password'">비밀번호 찾기</button></div></div>
         </template>
-        <label v-if="signup&&lab.enabled">휴대폰 번호 · 정책 검토 대상<input v-model="phoneNumber" type="tel" placeholder="010-0000-0000" pattern="010-0000-[0-9]{4}" maxlength="13" autocomplete="off"><small>추가 수집 항목입니다. 합성 번호만 입력하세요.</small></label>
+        <label v-if="signup&&lab.enabled">휴대폰 번호 · 정책 검토 대상 <span class="required">*</span><input v-model="phoneNumber" type="tel" placeholder="010-0000-0000" pattern="010-0000-[0-9]{4}" maxlength="13" autocomplete="off" required :aria-invalid="Boolean(fieldErrors.phone_number)"><small>필수 실습 항목입니다. 합성 번호만 입력하세요.</small><span v-if="fieldErrors.phone_number" class="field-error">{{fieldErrors.phone_number}}</span></label>
         <button class="btn primary full auth-submit" :disabled="busy"><LoaderCircle v-if="busy" class="spin" :size="18"/>{{busy?'처리 중…':signup?'회원가입':'로그인'}}<ArrowRight :size="18"/></button>
       </form>
     </div>

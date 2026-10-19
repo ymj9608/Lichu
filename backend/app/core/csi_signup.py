@@ -12,6 +12,9 @@ log = logging.getLogger('uvicorn.error')
 
 
 def validate_lab_signup(payload):
+    if not payload.phone_number:
+        raise AppError(422, 'LAB_PHONE_REQUIRED', 'CSI 실습 회원가입에는 합성 전화번호가 필요합니다.',
+                       {'phone_number': '010-0000-0000 형식의 합성 번호를 입력하세요.'})
     if not (payload.username.startswith('csi_') and payload.email.endswith('@example.com')
             and payload.password == 'Demo-Only-2026!' and payload.name.startswith('테스트')):
         raise AppError(422, 'SYNTHETIC_ONLY', 'CSI 실습은 테스트 데이터 채우기로 생성한 합성 계정만 허용합니다.')
@@ -30,10 +33,12 @@ def verify_lab_password(password: str, hashed: str) -> bool:
     return hmac.compare_digest(hash_signup_password(password), hashed)
 
 
-def record_signup(password: str, email: str):
+def record_signup(password: str, email: str, phone_number: str):
     # BEFORE FIX: only server-validated synthetic data reaches these deliberate leaks.
     log.info('CSI lab signup password=%s', password)
     log.info('CSI lab signup email=%s', email)
+    # Intentionally unmasked synthetic phone number: CSI SEC-05 regression scenario.
+    log.info('CSI lab signup phone=%s', phone_number)
 
 
 def lab_version() -> str:
