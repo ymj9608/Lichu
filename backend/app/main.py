@@ -1,4 +1,5 @@
 import logging
+from uuid import uuid4
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -8,10 +9,32 @@ from sqlalchemy.exc import IntegrityError
 from app.api.routes import router
 from app.core.config import settings
 from app.core.errors import AppError
+from app.core.business_context import trace_id, record
 
 app = FastAPI(title='LiChU. API', version='1.1.0', description='사내 SaaS 라이선스 신청·승인·할당·반납·회수')
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(','), allow_methods=['GET', 'POST', 'PATCH'], allow_headers=['Authorization', 'Content-Type'])
 app.include_router(router)
+
+
+@app.middleware('http')
+async def signup_context(request: Request, call_next):
+    if request.method != 'POST' or request.url.path != '/api/auth/signup':
+        return await call_next(request)
+    # Never trust client-supplied trace headers or read/log the request body here.
+    trace = str(uuid4())
+    token = trace_id.set(trace)
+    lab_mode = settings.csi_lab_mode
+    record('REQUEST_STARTED', trace=trace, lab_mode=lab_mode)
+    try:
+        response = await call_next(request)
+        record('HTTP_FINISHED', trace=trace, lab_mode=lab_mode, status=response.status_code)
+        response.headers['X-Trace-ID'] = trace
+        return response
+    except Exception:
+        record('REQUEST_FAILED', trace=trace, lab_mode=lab_mode, status=500)
+        raise
+    finally:
+        trace_id.reset(token)
 
 
 @app.get('/api/csi-lab', include_in_schema=False)

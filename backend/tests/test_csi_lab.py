@@ -28,7 +28,7 @@ def test_lab_signup_persists_logs_and_login(context, monkeypatch, caplog):
         assert user.password_hash.startswith('$2b$12$')
         assert data['password'] not in caplog.text and data['email'] not in caplog.text
         assert data['phone_number'] not in caplog.text
-        assert 'CSI lab signup completed' in caplog.text
+        assert 'DB_COMMITTED' in caplog.text
     login = client.post('/api/auth/login', json={'username':data['username'], 'password':data['password']})
     assert login.status_code == 200
     token = login.json()['access_token']

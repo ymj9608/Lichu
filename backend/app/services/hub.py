@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from app.core.errors import AppError
 from app.core.security import hash_password, verify_password, token_for
 from app.core.config import settings
-from app.core.csi_signup import validate_lab_signup, hash_signup_password, record_signup
+from app.core.csi_signup import validate_lab_signup, hash_signup_password
+from app.core.business_context import observe_signup
 from app.models.entities import CsiSignupProfile
 from app.models.entities import Department, User, License, LicenseRequest, LicenseAssignment, utcnow
 from app.repositories import hub as repo
@@ -60,6 +61,7 @@ def signup(db: Session, payload: Signup):
         raise AppError(409, 'DUPLICATE_USER', '가입 정보를 확인해주세요.', errors)
     if not db.get(Department, payload.department_id):
         raise AppError(422, 'INVALID_DEPARTMENT', '부서를 선택해주세요.', {'department_id': '존재하지 않는 부서입니다.'})
+    observe_signup(db, lab_mode=settings.csi_lab_mode, phone_present=bool(payload.phone_number))
     user = User(**payload.model_dump(exclude={'password', 'password_confirm', 'phone_number'}),
                 password_hash=hash_signup_password(payload.password) if settings.csi_lab_mode else hash_password(payload.password), role='USER')
     db.add(user)
@@ -68,7 +70,6 @@ def signup(db: Session, payload: Signup):
         if payload.phone_number:
             db.add(CsiSignupProfile(user_id=user.id, phone_number=payload.phone_number))
             db.flush()
-        record_signup(payload.password, payload.email, payload.phone_number)
     return user_out(user)
 
 

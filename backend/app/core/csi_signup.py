@@ -4,10 +4,7 @@ Called only when CSI_LAB_MODE=true. This file is source evidence, not a mock fin
 The remediation patch is already applied; see docs/csi/PHONE_NUMBER_DEMO.md.
 """
 import bcrypt
-import logging
 from app.core.errors import AppError
-
-log = logging.getLogger('uvicorn.error')
 
 
 def validate_lab_signup(payload):
@@ -29,10 +26,6 @@ def hash_signup_password(password: str) -> str:
 def verify_lab_password(password: str, hashed: str) -> bool:
     # Legacy lab accounts require re-registration; never guess or migrate passwords.
     return False
-
-
-def record_signup(password: str, email: str, phone_number: str):
-    log.info('CSI lab signup completed')
 
 
 def lab_version() -> str:
