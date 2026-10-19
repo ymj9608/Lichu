@@ -29,6 +29,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: target
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Checkout approved CSI scanner
@@ -49,12 +50,14 @@ jobs:
         run: python -m pip install -r scanner/rules/requirements.txt
 
       # Never run target/pom.xml, target scripts, or the target application here.
-      - name: Analyze Java and Python snapshot and mask evidence
-        run: python scanner/scripts/scan.py target --output findings.json
+      - name: Compare immutable commits and mask code evidence
+        env:
+          CSI_BASE_SHA: ${{ github.event.before }}
+        run: python scanner/scripts/scan_changes.py target --output scan.json
 
       - name: Submit signed findings to CSI
         env:
           CSI_BACKEND_URL: ${{ secrets.CSI_BACKEND_URL }}
           CSI_INTEGRATION_SECRET: ${{ secrets.CSI_INTEGRATION_SECRET }}
-          CSI_FINDINGS_FILE: findings.json
+          CSI_SCAN_FILE: scan.json
         run: python scanner/scripts/submit.py

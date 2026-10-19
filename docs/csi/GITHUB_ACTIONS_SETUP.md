@@ -263,3 +263,12 @@ docker compose -f compose.intake.yml down
 ```
 
 로컬 검증은 `verification.json`에 기록합니다. GitHub Secrets 등록, 외부 HTTPS 주소 연결, 실제 Push 실행이 끝나기 전에는 GitHub End-to-End 연동 완료로 간주하지 않습니다.
+
+
+## 코드 변경 리뷰 스캐너
+
+현재 workflow는 `fetch-depth: 0`으로 두 커밋을 읽고 CSI의 `scripts/scan_changes.py`로 전후를 검사합니다. `CSI_SCANNER_REF`는 이 파일과 `scripts/submit.py`의 `CSI_SCAN_FILE` 지원이 포함된 CSI 커밋 전체 SHA로 지정해야 합니다. 구버전 SHA를 유지하면 스크립트를 찾지 못해 실패합니다.
+
+Push의 `before`와 현재 SHA가 비교 기준이며, 수동 실행은 현재 커밋의 부모를 사용합니다. 최초 Push/기준 미제공은 변경 비교 없음, 기준 객체를 찾지 못한 경우는 기준 조회 불가로 표시합니다. 파일 내용은 전송 전에 마스킹합니다. CSI 검사 상세 → **코드 변경 리뷰**에서 변경 파일을 선택해 전후 diff, 필드/함수 선언 요약, 연결된 신규·유지·미탐지 후보와 AI 분석을 확인합니다. 기존 완료 검사는 소급 갱신되지 않습니다.
+
+새 기능을 추가하지 않고 workflow만 바꾼 Push는 Java/Python 변경 파일이 0개인 것이 정상입니다. 대상 앱 전체의 보안 검사는 계속 수행됩니다. 변경 리뷰 검증 방법과 MCP/Agent 구성은 CSI의 `docs/CHANGE_REVIEWS.md`에 있습니다.
