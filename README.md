@@ -176,3 +176,5 @@ Docker Desktop을 시작하고 PostgreSQL 16 Compose 컨테이너의 healthy 상
 ## 현재 범위와 향후 고려
 
 실제 SaaS provisioning, Vendor API, HR/SSO, Slack/email 알림, 자동 사용량 측정·회수, 예산, 다단계 결재, 자동 대기열, 결제는 구현하지 않습니다. 실제 기업 도입 시 self signup을 SSO/HR 연동으로 대체하는 것을 우선 검토합니다. 마스코트는 제공된 `frontend/public/lichu-mascot.png`만 사용합니다.
+
+<!-- CSI 연동 테스트: 2026-10-23T03:52:53Z -->
