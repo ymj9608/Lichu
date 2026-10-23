@@ -2,6 +2,8 @@
 
 Called only when CSI_LAB_MODE=true. This file is source evidence, not a mock finding.
 Apply docs/csi/signup-remediation.patch to demonstrate code-based remediation.
+
+# CSI demo: re-triggering a scan for the fix-proposal + architecture-context walkthrough.
 """
 import hashlib
 import hmac
