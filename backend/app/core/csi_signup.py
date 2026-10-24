@@ -1,10 +1,13 @@
-"""Password and logging remediation for an isolated CSI lab database.
+"""Intentional email logging regression for an isolated CSI security scan demo.
 
 Called only when CSI_LAB_MODE=true. This file is source evidence, not a mock finding.
-The remediation patch is already applied; see docs/csi/PHONE_NUMBER_DEMO.md.
+Password remediation remains applied; this branch deliberately reintroduces an email leak.
 """
 import bcrypt
+import logging
 from app.core.errors import AppError
+
+log = logging.getLogger('uvicorn.error')
 
 
 def validate_lab_signup(payload):
@@ -16,6 +19,8 @@ def validate_lab_signup(payload):
         raise AppError(422, 'SYNTHETIC_ONLY', 'CSI 실습은 테스트 데이터 채우기로 생성한 합성 계정만 허용합니다.')
     if payload.profile_image:
         raise AppError(422, 'SYNTHETIC_ONLY', 'CSI 실습에서는 실제 프로필 사진을 수집하지 않습니다.')
+    # INTENTIONAL SEC-05: validated synthetic email reaches the diagnostic log unmasked.
+    log.info('CSI lab signup diagnostics email=%s', payload.email)
 
 
 def hash_signup_password(password: str) -> str:
