@@ -20,7 +20,7 @@ def validate_lab_signup(payload):
     if payload.profile_image:
         raise AppError(422, 'SYNTHETIC_ONLY', 'CSI 실습에서는 실제 프로필 사진을 수집하지 않습니다.')
     # INTENTIONAL SEC-05: validated synthetic email reaches the diagnostic log unmasked.
-    log.info('CSI lab signup diagnostics email=%s')
+    log.info('CSI lab signup diagnostics email=%s', payload.email)
 
 def hash_signup_password(password: str) -> str:
     # AFTER FIX: library-generated per-password salt and policy cost 12.
